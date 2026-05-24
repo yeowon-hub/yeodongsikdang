@@ -34,7 +34,7 @@ export function AppLayout() {
           )}
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col min-h-0 pb-[4.5rem]">
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col min-h-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
         <Outlet />
       </main>
       <BottomTabBar />
