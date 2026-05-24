@@ -1,0 +1,695 @@
+[
+  {
+    "id": "builtin-001",
+    "title": "김치찌개",
+    "description": "얼큰하고 시원한 김치찌개",
+    "category": "찌개·국",
+    "cookingTime": 30,
+    "servings": 2,
+    "ingredients": [
+      { "name": "김치", "quantity": "200", "unit": "g" },
+      { "name": "돼지고기", "quantity": "100", "unit": "g", "isOptional": true },
+      { "name": "두부", "quantity": "1/2", "unit": "모", "isOptional": true },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "고춧가루", "quantity": "1", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "김치와 돼지고기를 적당한 크기로 썰어 준비합니다." },
+      { "order": 2, "text": "냄비에 참기름을 두르고 김치와 고기를 볶습니다." },
+      { "order": 3, "text": "물 500ml를 넣고 끓인 후 두부와 대파를 넣어 10분 더 끓입니다." }
+    ]
+  },
+  {
+    "id": "builtin-002",
+    "title": "된장찌개",
+    "description": "구수한 된장찌개",
+    "category": "찌개·국",
+    "cookingTime": 25,
+    "servings": 2,
+    "ingredients": [
+      { "name": "된장", "quantity": "2", "unit": "큰술" },
+      { "name": "두부", "quantity": "1/2", "unit": "모" },
+      { "name": "애호박", "quantity": "1/4", "unit": "개" },
+      { "name": "감자", "quantity": "1", "unit": "개", "isOptional": true },
+      { "name": "대파", "quantity": "1", "unit": "대" }
+    ],
+    "steps": [
+      { "order": 1, "text": "냄비에 물 500ml를 넣고 끓입니다." },
+      { "order": 2, "text": "된장을 풀어 넣고 채소와 두부를 넣습니다." },
+      { "order": 3, "text": "15분간 끓인 후 대파를 넣고 마무리합니다." }
+    ]
+  },
+  {
+    "id": "builtin-003",
+    "title": "계란볶음밥",
+    "description": "간단한 한 그릇 요리",
+    "category": "밥·면",
+    "cookingTime": 15,
+    "servings": 1,
+    "ingredients": [
+      { "name": "밥", "quantity": "1", "unit": "공기" },
+      { "name": "계란", "quantity": "2", "unit": "개" },
+      { "name": "대파", "quantity": "1/2", "unit": "대" },
+      { "name": "간장", "quantity": "1", "unit": "큰술" },
+      { "name": "참기름", "quantity": "1", "unit": "작은술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "팬에 기름을 두르고 계란을 스크램블합니다." },
+      { "order": 2, "text": "밥을 넣고 볶다가 간장과 참기름을 넣습니다." },
+      { "order": 3, "text": "대파를 넣고 한 번 더 볶아 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-004",
+    "title": "제육볶음",
+    "description": "매콤달콤 제육볶음",
+    "category": "볶음",
+    "cookingTime": 25,
+    "servings": 2,
+    "ingredients": [
+      { "name": "돼지고기", "quantity": "300", "unit": "g" },
+      { "name": "양파", "quantity": "1/2", "unit": "개" },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "고추장", "quantity": "2", "unit": "큰술" },
+      { "name": "고춧가루", "quantity": "1", "unit": "큰술" },
+      { "name": "간장", "quantity": "1", "unit": "큰술" },
+      { "name": "마늘", "quantity": "3", "unit": "쪽" }
+    ],
+    "steps": [
+      { "order": 1, "text": "돼지고기를 한 입 크기로 썰고 양념에 재웁니다." },
+      { "order": 2, "text": "팬에 고기를 볶다가 양파를 넣습니다." },
+      { "order": 3, "text": "대파를 넣고 5분 더 볶아 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-005",
+    "title": "떡볶이",
+    "description": "매콤달콤 분식 떡볶이",
+    "category": "간식",
+    "cookingTime": 20,
+    "servings": 2,
+    "ingredients": [
+      { "name": "떡", "quantity": "300", "unit": "g" },
+      { "name": "어묵", "quantity": "100", "unit": "g", "isOptional": true },
+      { "name": "고추장", "quantity": "2", "unit": "큰술" },
+      { "name": "고춧가루", "quantity": "1", "unit": "큰술" },
+      { "name": "설탕", "quantity": "1", "unit": "큰술" },
+      { "name": "대파", "quantity": "1", "unit": "대" }
+    ],
+    "steps": [
+      { "order": 1, "text": "냄비에 물 400ml와 양념을 넣고 끓입니다." },
+      { "order": 2, "text": "떡과 어묵을 넣고 10분간 끓입니다." },
+      { "order": 3, "text": "대파를 넣고 졸여 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-006",
+    "title": "라면 업그레이드",
+    "description": "평범한 라면을 특별하게",
+    "category": "밥·면",
+    "cookingTime": 10,
+    "servings": 1,
+    "ingredients": [
+      { "name": "라면", "quantity": "1", "unit": "봉" },
+      { "name": "계란", "quantity": "1", "unit": "개" },
+      { "name": "치즈", "quantity": "1", "unit": "장", "isOptional": true },
+      { "name": "대파", "quantity": "1/2", "unit": "대" }
+    ],
+    "steps": [
+      { "order": 1, "text": "물을 끓이고 라면 스프와 면을 넣습니다." },
+      { "order": 2, "text": "계란을 풀어 넣고 치즈를 올립니다." },
+      { "order": 3, "text": "대파를 송송 썰어 올려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-007",
+    "title": "된장국",
+    "description": "구수한 아침 국",
+    "category": "찌개·국",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "된장", "quantity": "1.5", "unit": "큰술" },
+      { "name": "두부", "quantity": "1/4", "unit": "모" },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "멸치", "quantity": "5", "unit": "마리", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "물 500ml를 끓이고 된장을 풀어 넣습니다." },
+      { "order": 2, "text": "두부를 넣고 5분 끓입니다." },
+      { "order": 3, "text": "대파를 넣고 마무리합니다." }
+    ]
+  },
+  {
+    "id": "builtin-008",
+    "title": "오믈렛",
+    "description": "부드러운 오믈렛",
+    "category": "간식",
+    "cookingTime": 10,
+    "servings": 1,
+    "ingredients": [
+      { "name": "계란", "quantity": "3", "unit": "개" },
+      { "name": "우유", "quantity": "2", "unit": "큰술" },
+      { "name": "소금", "quantity": "1", "unit": "꼬집" },
+      { "name": "버터", "quantity": "1", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "계란에 우유와 소금을 넣고 풀어줍니다." },
+      { "order": 2, "text": "팬에 버터를 녹이고 계란물을 부어 익힙니다." },
+      { "order": 3, "text": "반으로 접어 접시에 담아 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-009",
+    "title": "파스타 알리오 올리오",
+    "description": "마늘과 올리브유 파스타",
+    "category": "밥·면",
+    "cookingTime": 20,
+    "servings": 2,
+    "ingredients": [
+      { "name": "스파게티", "quantity": "200", "unit": "g" },
+      { "name": "마늘", "quantity": "5", "unit": "쪽" },
+      { "name": "올리브유", "quantity": "4", "unit": "큰술" },
+      { "name": "고추", "quantity": "1", "unit": "개", "isOptional": true },
+      { "name": "파슬리", "quantity": "1", "unit": "줄기", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "면을 소금물에 삶습니다." },
+      { "order": 2, "text": "팬에 올리브유와 마늘을 볶습니다." },
+      { "order": 3, "text": "면과 면수를 넣고 볶아 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-010",
+    "title": "샐러드",
+    "description": "신선한 채소 샐러드",
+    "category": "샐러드",
+    "cookingTime": 10,
+    "servings": 2,
+    "ingredients": [
+      { "name": "양상추", "quantity": "1/2", "unit": "포기" },
+      { "name": "토마토", "quantity": "1", "unit": "개" },
+      { "name": "오이", "quantity": "1", "unit": "개" },
+      { "name": "올리브유", "quantity": "2", "unit": "큰술" },
+      { "name": "레몬", "quantity": "1/2", "unit": "개", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "채소를 깨끗이 씻어 적당한 크기로 썰습니다." },
+      { "order": 2, "text": "올리브유와 레몬즙으로 드레싱을 만듭니다." },
+      { "order": 3, "text": "채소에 드레싱을 버무려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-011",
+    "title": "두부김치",
+    "description": "구수한 두부김치",
+    "category": "반찬",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "두부", "quantity": "1", "unit": "모" },
+      { "name": "김치", "quantity": "100", "unit": "g" },
+      { "name": "돼지고기", "quantity": "50", "unit": "g", "isOptional": true },
+      { "name": "고춧가루", "quantity": "1", "unit": "큰술" },
+      { "name": "대파", "quantity": "1", "unit": "대" }
+    ],
+    "steps": [
+      { "order": 1, "text": "두부를 기름에 노릇하게 구워 준비합니다." },
+      { "order": 2, "text": "김치와 고기를 볶아 양념합니다." },
+      { "order": 3, "text": "두부 위에 김치를 올려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-012",
+    "title": "감자조림",
+    "description": "달콤짭짤 감자조림",
+    "category": "반찬",
+    "cookingTime": 25,
+    "servings": 2,
+    "ingredients": [
+      { "name": "감자", "quantity": "3", "unit": "개" },
+      { "name": "간장", "quantity": "3", "unit": "큰술" },
+      { "name": "설탕", "quantity": "1", "unit": "큰술" },
+      { "name": "마늘", "quantity": "2", "unit": "쪽" },
+      { "name": "대파", "quantity": "1/2", "unit": "대" }
+    ],
+    "steps": [
+      { "order": 1, "text": "감자를 깍두기 모양으로 썰어 준비합니다." },
+      { "order": 2, "text": "팬에 감자와 양념, 물을 넣고 끓입니다." },
+      { "order": 3, "text": "20분간 조려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-013",
+    "title": "미역국",
+    "description": "생일에 먹는 미역국",
+    "category": "찌개·국",
+    "cookingTime": 30,
+    "servings": 2,
+    "ingredients": [
+      { "name": "미역", "quantity": "20", "unit": "g" },
+      { "name": "소고기", "quantity": "100", "unit": "g" },
+      { "name": "참기름", "quantity": "1", "unit": "큰술" },
+      { "name": "간장", "quantity": "2", "unit": "큰술" },
+      { "name": "마늘", "quantity": "2", "unit": "쪽" }
+    ],
+    "steps": [
+      { "order": 1, "text": "미역을 불려 썰고 소고기를 준비합니다." },
+      { "order": 2, "text": "냄비에 참기름을 두르고 고기와 미역을 볶습니다." },
+      { "order": 3, "text": "물 800ml를 넣고 20분 끓여 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-014",
+    "title": "불고기",
+    "description": "달콤한 소불고기",
+    "category": "볶음",
+    "cookingTime": 30,
+    "servings": 2,
+    "ingredients": [
+      { "name": "소고기", "quantity": "300", "unit": "g" },
+      { "name": "양파", "quantity": "1/2", "unit": "개" },
+      { "name": "간장", "quantity": "3", "unit": "큰술" },
+      { "name": "설탕", "quantity": "1", "unit": "큰술" },
+      { "name": "마늘", "quantity": "3", "unit": "쪽" },
+      { "name": "대파", "quantity": "1", "unit": "대" }
+    ],
+    "steps": [
+      { "order": 1, "text": "소고기를 얇게 썰어 양념에 30분 재웁니다." },
+      { "order": 2, "text": "팬에 고기와 양파를 볶습니다." },
+      { "order": 3, "text": "대파를 넣고 한 번 더 볶아 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-015",
+    "title": "계란말이",
+    "description": "폭신한 계란말이",
+    "category": "반찬",
+    "cookingTime": 10,
+    "servings": 2,
+    "ingredients": [
+      { "name": "계란", "quantity": "4", "unit": "개" },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "소금", "quantity": "1", "unit": "꼬집" },
+      { "name": "당근", "quantity": "1/4", "unit": "개", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "계란에 다진 대파와 소금을 넣고 풀어줍니다." },
+      { "order": 2, "text": "팬에 기름을 두르고 얇게 부어 말아줍니다." },
+      { "order": 3, "text": "썰어 접시에 담아 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-016",
+    "title": "순두부찌개",
+    "description": "얼큰한 순두부찌개",
+    "category": "찌개·국",
+    "cookingTime": 20,
+    "servings": 2,
+    "ingredients": [
+      { "name": "순두부", "quantity": "1", "unit": "팩" },
+      { "name": "계란", "quantity": "1", "unit": "개" },
+      { "name": "고춧가루", "quantity": "1", "unit": "큰술" },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "멸치", "quantity": "5", "unit": "마리", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "육수를 끓이고 고춧가루 양념을 넣습니다." },
+      { "order": 2, "text": "순두부를 넣고 끓입니다." },
+      { "order": 3, "text": "계란을 풀어 넣고 대파를 올려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-017",
+    "title": "닭볶음탕",
+    "description": "매콤달콤 닭볶음탕",
+    "category": "찌개·국",
+    "cookingTime": 40,
+    "servings": 3,
+    "ingredients": [
+      { "name": "닭", "quantity": "600", "unit": "g" },
+      { "name": "감자", "quantity": "2", "unit": "개" },
+      { "name": "당근", "quantity": "1", "unit": "개" },
+      { "name": "양파", "quantity": "1", "unit": "개" },
+      { "name": "고춧가루", "quantity": "3", "unit": "큰술" },
+      { "name": "간장", "quantity": "3", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "닭을 큰 덩어리로 썰어 준비합니다." },
+      { "order": 2, "text": "냄비에 닭과 채소, 양념을 넣고 끓입니다." },
+      { "order": 3, "text": "40분간 끓여 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-018",
+    "title": "스팸김치볶음",
+    "description": "간단한 밥반찬",
+    "category": "반찬",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "스팸", "quantity": "1/2", "unit": "캔" },
+      { "name": "김치", "quantity": "150", "unit": "g" },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "고춧가루", "quantity": "1", "unit": "큰술" },
+      { "name": "설탕", "quantity": "1", "unit": "작은술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "스팸을 큐브 모양으로 썰어 준비합니다." },
+      { "order": 2, "text": "팬에 스팸과 김치를 볶습니다." },
+      { "order": 3, "text": "양념과 대파를 넣고 볶아 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-019",
+    "title": "콩나물국",
+    "description": "해장에 좋은 콩나물국",
+    "category": "찌개·국",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "콩나물", "quantity": "200", "unit": "g" },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "마늘", "quantity": "2", "unit": "쪽" },
+      { "name": "멸치", "quantity": "5", "unit": "마리", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "콩나물을 깨끗이 씻어 준비합니다." },
+      { "order": 2, "text": "육수를 끓이고 콩나물을 넣습니다." },
+      { "order": 3, "text": "10분 끓인 후 대파를 넣어 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-020",
+    "title": "치즈계란말이",
+    "description": "치즈가 쭉~ 늘어나는 계란말이",
+    "category": "반찬",
+    "cookingTime": 12,
+    "servings": 2,
+    "ingredients": [
+      { "name": "계란", "quantity": "3", "unit": "개" },
+      { "name": "치즈", "quantity": "2", "unit": "장" },
+      { "name": "대파", "quantity": "1/2", "unit": "대" },
+      { "name": "소금", "quantity": "1", "unit": "꼬집" }
+    ],
+    "steps": [
+      { "order": 1, "text": "계란을 풀고 대파와 소금을 넣습니다." },
+      { "order": 2, "text": "계란말이를 만들다가 치즈를 넣어 말아줍니다." },
+      { "order": 3, "text": "썰어 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-021",
+    "title": "토마토계란볶음",
+    "description": "새콤달콤 토마토계란볶음",
+    "category": "반찬",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "토마토", "quantity": "2", "unit": "개" },
+      { "name": "계란", "quantity": "3", "unit": "개" },
+      { "name": "설탕", "quantity": "1", "unit": "큰술" },
+      { "name": "소금", "quantity": "1", "unit": "꼬집" }
+    ],
+    "steps": [
+      { "order": 1, "text": "토마토를 큼직하게 썰어 준비합니다." },
+      { "order": 2, "text": "팬에 토마토를 볶다가 계란을 넣습니다." },
+      { "order": 3, "text": "설탕과 소금으로 간해 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-022",
+    "title": "어묵탕",
+    "description": "따뜻한 어묵탕",
+    "category": "찌개·국",
+    "cookingTime": 20,
+    "servings": 2,
+    "ingredients": [
+      { "name": "어묵", "quantity": "200", "unit": "g" },
+      { "name": "무", "quantity": "100", "unit": "g", "isOptional": true },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "간장", "quantity": "2", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "어묵과 무를 준비합니다." },
+      { "order": 2, "text": "냄비에 물과 간장을 넣고 끓입니다." },
+      { "order": 3, "text": "어묵과 무를 넣고 15분 끓여 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-023",
+    "title": "버터갈릭새우",
+    "description": "향긋한 버터갈릭새우",
+    "category": "볶음",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "새우", "quantity": "300", "unit": "g" },
+      { "name": "마늘", "quantity": "5", "unit": "쪽" },
+      { "name": "버터", "quantity": "2", "unit": "큰술" },
+      { "name": "파슬리", "quantity": "1", "unit": "줄기", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "새우를 손질하고 마늘을 다집니다." },
+      { "order": 2, "text": "팬에 버터를 녹이고 마늘과 새우를 볶습니다." },
+      { "order": 3, "text": "파슬리를 뿌려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-024",
+    "title": "된장비빔면",
+    "description": "시원한 된장비빔면",
+    "category": "밥·면",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "소면", "quantity": "200", "unit": "g" },
+      { "name": "된장", "quantity": "1", "unit": "큰술" },
+      { "name": "오이", "quantity": "1/2", "unit": "개" },
+      { "name": "계란", "quantity": "1", "unit": "개" },
+      { "name": "참기름", "quantity": "1", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "소면을 삶아 찬물에 헹굽니다." },
+      { "order": 2, "text": "된장, 참기름, 물로 양념장을 만듭니다." },
+      { "order": 3, "text": "면에 양념과 채소, 계란을 올려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-025",
+    "title": "김치볶음밥",
+    "description": "김치로 만드는 볶음밥",
+    "category": "밥·면",
+    "cookingTime": 15,
+    "servings": 1,
+    "ingredients": [
+      { "name": "밥", "quantity": "1", "unit": "공기" },
+      { "name": "김치", "quantity": "100", "unit": "g" },
+      { "name": "계란", "quantity": "1", "unit": "개" },
+      { "name": "참기름", "quantity": "1", "unit": "큰술" },
+      { "name": "김", "quantity": "1", "unit": "장", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "김치를 잘게 썰어 준비합니다." },
+      { "order": 2, "text": "팬에 김치를 볶다가 밥을 넣습니다." },
+      { "order": 3, "text": "계란을 넣고 볶아 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-026",
+    "title": "시금치나물",
+    "description": "건강한 시금치나물",
+    "category": "반찬",
+    "cookingTime": 10,
+    "servings": 2,
+    "ingredients": [
+      { "name": "시금치", "quantity": "300", "unit": "g" },
+      { "name": "마늘", "quantity": "1", "unit": "쪽" },
+      { "name": "참기름", "quantity": "1", "unit": "큰술" },
+      { "name": "소금", "quantity": "1", "unit": "꼬집" },
+      { "name": "깨", "quantity": "1", "unit": "큰술", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "시금치를 데쳐 찬물에 헹굽니다." },
+      { "order": 2, "text": "물기를 짜고 양념을 넣어 무칩니다." },
+      { "order": 3, "text": "깨를 뿌려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-027",
+    "title": "애호박볶음",
+    "description": "담백한 애호박볶음",
+    "category": "반찬",
+    "cookingTime": 12,
+    "servings": 2,
+    "ingredients": [
+      { "name": "애호박", "quantity": "1", "unit": "개" },
+      { "name": "양파", "quantity": "1/4", "unit": "개" },
+      { "name": "마늘", "quantity": "2", "unit": "쪽" },
+      { "name": "간장", "quantity": "1", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "애호박을 반달 모양으로 썰어 준비합니다." },
+      { "order": 2, "text": "팬에 마늘과 애호박을 볶습니다." },
+      { "order": 3, "text": "간장으로 간해 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-028",
+    "title": "냉면",
+    "description": "시원한 여름 냉면",
+    "category": "밥·면",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "냉면", "quantity": "2", "unit": "인분" },
+      { "name": "계란", "quantity": "1", "unit": "개" },
+      { "name": "오이", "quantity": "1/2", "unit": "개" },
+      { "name": "배", "quantity": "1/4", "unit": "개", "isOptional": true },
+      { "name": "식초", "quantity": "2", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "냉면을 삶아 찬물에 헹굽니다." },
+      { "order": 2, "text": "육수에 식초와 설탕을 넣어 차갑게 준비합니다." },
+      { "order": 3, "text": "면에 육수와 고명을 올려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-029",
+    "title": "참치마요덮밥",
+    "description": "5분 완성 덮밥",
+    "category": "밥·면",
+    "cookingTime": 5,
+    "servings": 1,
+    "ingredients": [
+      { "name": "밥", "quantity": "1", "unit": "공기" },
+      { "name": "참치", "quantity": "1", "unit": "캔" },
+      { "name": "마요네즈", "quantity": "2", "unit": "큰술" },
+      { "name": "김", "quantity": "1", "unit": "장", "isOptional": true }
+    ],
+    "steps": [
+      { "order": 1, "text": "참치 기름을 빼고 마요네즈와 섞습니다." },
+      { "order": 2, "text": "밥 위에 참치마요를 올립니다." },
+      { "order": 3, "text": "김을 올려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-030",
+    "title": "감자전",
+    "description": "바삭한 감자전",
+    "category": "반찬",
+    "cookingTime": 20,
+    "servings": 2,
+    "ingredients": [
+      { "name": "감자", "quantity": "3", "unit": "개" },
+      { "name": "소금", "quantity": "1", "unit": "꼬집" },
+      { "name": "식용유", "quantity": "3", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "감자를 강판에 갈아 물기를 짭니다." },
+      { "order": 2, "text": "팬에 기름을 두르고 감자를 부쳐줍니다." },
+      { "order": 3, "text": "양면을 노릇하게 구워 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-031",
+    "title": "부대찌개",
+    "description": "푸짐한 부대찌개",
+    "category": "찌개·국",
+    "cookingTime": 30,
+    "servings": 3,
+    "ingredients": [
+      { "name": "햄", "quantity": "100", "unit": "g" },
+      { "name": "소시지", "quantity": "100", "unit": "g" },
+      { "name": "김치", "quantity": "150", "unit": "g" },
+      { "name": "라면", "quantity": "1", "unit": "봉" },
+      { "name": "고춧가루", "quantity": "2", "unit": "큰술" },
+      { "name": "대파", "quantity": "1", "unit": "대" }
+    ],
+    "steps": [
+      { "order": 1, "text": "냄비에 김치와 햄, 소시지를 넣고 끓입니다." },
+      { "order": 2, "text": "고춧가루와 간장으로 양념합니다." },
+      { "order": 3, "text": "라면과 대파를 넣고 끓여 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-032",
+    "title": "오이무침",
+    "description": "아삭한 오이무침",
+    "category": "반찬",
+    "cookingTime": 10,
+    "servings": 2,
+    "ingredients": [
+      { "name": "오이", "quantity": "2", "unit": "개" },
+      { "name": "고춧가루", "quantity": "1", "unit": "큰술" },
+      { "name": "식초", "quantity": "1", "unit": "큰술" },
+      { "name": "설탕", "quantity": "1", "unit": "작은술" },
+      { "name": "마늘", "quantity": "1", "unit": "쪽" }
+    ],
+    "steps": [
+      { "order": 1, "text": "오이를 어슷하게 썰어 준비합니다." },
+      { "order": 2, "text": "양념을 만들어 오이와 버무립니다." },
+      { "order": 3, "text": "10분 재워 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-033",
+    "title": "크림파스타",
+    "description": "부드러운 크림파스타",
+    "category": "밥·면",
+    "cookingTime": 25,
+    "servings": 2,
+    "ingredients": [
+      { "name": "파스타", "quantity": "200", "unit": "g" },
+      { "name": "베이컨", "quantity": "100", "unit": "g", "isOptional": true },
+      { "name": "우유", "quantity": "200", "unit": "ml" },
+      { "name": "마늘", "quantity": "3", "unit": "쪽" },
+      { "name": "치즈", "quantity": "2", "unit": "장" }
+    ],
+    "steps": [
+      { "order": 1, "text": "파스타를 삶아 준비합니다." },
+      { "order": 2, "text": "팬에 베이컨과 마늘을 볶고 우유를 넣습니다." },
+      { "order": 3, "text": "면과 치즈를 넣고 저어 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-034",
+    "title": "두부조림",
+    "description": "달콤짭짤 두부조림",
+    "category": "반찬",
+    "cookingTime": 20,
+    "servings": 2,
+    "ingredients": [
+      { "name": "두부", "quantity": "1", "unit": "모" },
+      { "name": "간장", "quantity": "3", "unit": "큰술" },
+      { "name": "설탕", "quantity": "1", "unit": "큰술" },
+      { "name": "대파", "quantity": "1", "unit": "대" },
+      { "name": "마늘", "quantity": "2", "unit": "쪽" }
+    ],
+    "steps": [
+      { "order": 1, "text": "두부를 네모나게 썰어 준비합니다." },
+      { "order": 2, "text": "팬에 두부를 구워 양념을 넣습니다." },
+      { "order": 3, "text": "15분간 조려 완성합니다." }
+    ]
+  },
+  {
+    "id": "builtin-035",
+    "title": "야채볶음밥",
+    "description": "건강한 야채볶음밥",
+    "category": "밥·면",
+    "cookingTime": 15,
+    "servings": 2,
+    "ingredients": [
+      { "name": "밥", "quantity": "2", "unit": "공기" },
+      { "name": "당근", "quantity": "1/2", "unit":  "개" },
+      { "name": "양파", "quantity": "1/2", "unit": "개" },
+      { "name": "계란", "quantity": "2", "unit": "개" },
+      { "name": "간장", "quantity": "2", "unit": "큰술" }
+    ],
+    "steps": [
+      { "order": 1, "text": "야채를 잘게 다져 준비합니다." },
+      { "order": 2, "text": "팬에 야채와 계란을 볶습니다." },
+      { "order": 3, "text": "밥과 간장을 넣고 볶아 완성합니다." }
+    ]
+  }
+]
