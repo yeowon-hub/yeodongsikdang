@@ -1,26 +1,93 @@
-export type StorageLocation = 'fridge1' | 'fridge2' | 'freezer' | 'shelf'
+export type StorageLocation =
+  | 'general_fridge'
+  | 'general_freezer'
+  | 'kimchi_fridge'
+  | 'kimchi_freezer'
+  | 'shelf'
 
-export const COLD_STORAGE_LOCATIONS = ['fridge1', 'fridge2', 'freezer'] as const
-export type ColdStorageLocation = (typeof COLD_STORAGE_LOCATIONS)[number]
+export type ColdStorageLocation =
+  | 'general_fridge'
+  | 'general_freezer'
+  | 'kimchi_fridge'
+  | 'kimchi_freezer'
+
+/** 양문형 냉장고 1대 = 냉장실 + 냉동실 */
+export const FRIDGE_UNITS = [
+  {
+    id: 'general' as const,
+    label: '일반 냉장고',
+    compartments: [
+      { location: 'general_freezer' as const, shortLabel: '냉동실' },
+      { location: 'general_fridge' as const, shortLabel: '냉장실' },
+    ],
+  },
+  {
+    id: 'kimchi' as const,
+    label: '김치냉장고',
+    compartments: [
+      { location: 'kimchi_freezer' as const, shortLabel: '냉동실' },
+      { location: 'kimchi_fridge' as const, shortLabel: '냉장실' },
+    ],
+  },
+] as const
+
+export type FridgeUnitId = (typeof FRIDGE_UNITS)[number]['id']
+
+export const COLD_STORAGE_LOCATIONS: readonly ColdStorageLocation[] = [
+  'general_fridge',
+  'general_freezer',
+  'kimchi_fridge',
+  'kimchi_freezer',
+]
 
 export const STORAGE_META: Record<
   StorageLocation,
-  { label: string; shortLabel: string; kind: 'fridge' | 'freezer' | 'shelf' }
+  {
+    label: string
+    shortLabel: string
+    kind: 'fridge' | 'freezer' | 'shelf'
+    unitId?: FridgeUnitId
+  }
 > = {
-  fridge1: { label: '냉장고 1', shortLabel: '냉장1', kind: 'fridge' },
-  fridge2: { label: '냉장고 2', shortLabel: '냉장2', kind: 'fridge' },
-  freezer: { label: '냉동실', shortLabel: '냉동', kind: 'freezer' },
+  general_fridge: {
+    label: '일반 냉장고 · 냉장실',
+    shortLabel: '냉장실',
+    kind: 'fridge',
+    unitId: 'general',
+  },
+  general_freezer: {
+    label: '일반 냉장고 · 냉동실',
+    shortLabel: '냉동실',
+    kind: 'freezer',
+    unitId: 'general',
+  },
+  kimchi_fridge: {
+    label: '김치냉장고 · 냉장실',
+    shortLabel: '냉장실',
+    kind: 'fridge',
+    unitId: 'kimchi',
+  },
+  kimchi_freezer: {
+    label: '김치냉장고 · 냉동실',
+    shortLabel: '냉동실',
+    kind: 'freezer',
+    unitId: 'kimchi',
+  },
   shelf: { label: '선반', shortLabel: '선반', kind: 'shelf' },
 }
 
 export const ALL_STORAGE_LOCATIONS = Object.keys(STORAGE_META) as StorageLocation[]
 
-export function isFridgeLocation(location: StorageLocation) {
-  return location === 'fridge1' || location === 'fridge2'
+export function isFridgeCompartment(location: StorageLocation) {
+  return location.endsWith('_fridge')
+}
+
+export function isFreezerCompartment(location: StorageLocation) {
+  return location.endsWith('_freezer')
 }
 
 export function isColdLocation(location: StorageLocation) {
-  return isFridgeLocation(location) || location === 'freezer'
+  return isFridgeCompartment(location) || isFreezerCompartment(location)
 }
 
 export function usesShelfLevel(location: StorageLocation) {
@@ -103,4 +170,12 @@ export interface Household {
   inviteCode: string
   role: HouseholdRole
   memberCount: number
+}
+
+/** 예전 location 값 → 새 구조 */
+export const LEGACY_LOCATION_MAP: Record<string, StorageLocation> = {
+  fridge: 'general_fridge',
+  fridge1: 'general_fridge',
+  fridge2: 'kimchi_fridge',
+  freezer: 'general_freezer',
 }

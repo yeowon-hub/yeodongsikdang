@@ -1,24 +1,23 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { FridgeSection } from '@/components/fridge/FridgeSection'
+import { FridgeUnit } from '@/components/fridge/FridgeUnit'
 import { IngredientForm } from '@/components/fridge/IngredientForm'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { ColdStorageLocation, Ingredient } from '@/types'
-import { COLD_STORAGE_LOCATIONS } from '@/types'
+import { COLD_STORAGE_LOCATIONS, FRIDGE_UNITS } from '@/types'
 
 export function FridgePage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
-  const [activeLocation, setActiveLocation] = useState<ColdStorageLocation>('fridge1')
+  const [activeLocation, setActiveLocation] = useState<ColdStorageLocation>('general_fridge')
   const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient } =
     useIngredients()
 
   const byLocation = useMemo(() => {
-    const map: Record<ColdStorageLocation, Ingredient[]> = {
-      fridge1: [],
-      fridge2: [],
-      freezer: [],
-    }
+    const map = Object.fromEntries(
+      COLD_STORAGE_LOCATIONS.map((loc) => [loc, [] as Ingredient[]]),
+    ) as Record<ColdStorageLocation, Ingredient[]>
+
     for (const item of ingredients) {
       if (item.location in map) {
         map[item.location as ColdStorageLocation].push(item)
@@ -41,19 +40,19 @@ export function FridgePage() {
       <div className="shrink-0 px-3 pb-1 pt-2">
         <h2 className="text-sm font-semibold text-fridge-dark">냉장고</h2>
         <p className="text-[11px] leading-snug text-gray-500">
-          칸을 탭한 뒤 + 로 재료를 추가하세요
+          양문형 냉장고별로 냉장실·냉동실을 탭한 뒤 + 로 추가하세요
         </p>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-1.5 px-2 pb-2">
-        {COLD_STORAGE_LOCATIONS.map((location) => (
-          <FridgeSection
-            key={location}
-            location={location}
-            ingredients={byLocation[location]}
-            isActive={activeLocation === location}
-            onActivate={() => setActiveLocation(location)}
-            onIngredientClick={(ing) => {
+      <div className="flex min-h-0 flex-1 flex-col gap-2 px-2 pb-2 sm:flex-row">
+        {FRIDGE_UNITS.map((unit) => (
+          <FridgeUnit
+            key={unit.id}
+            unitId={unit.id}
+            byLocation={byLocation}
+            activeLocation={activeLocation}
+            onActivate={setActiveLocation}
+            onIngredientClick={(location, ing) => {
               setActiveLocation(location)
               setEditing(ing)
               setFormOpen(true)

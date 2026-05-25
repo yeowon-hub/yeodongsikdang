@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Ingredient, Recipe, SyncQueueItem } from '@/types'
+import type { Ingredient, Recipe, SyncQueueItem, StorageLocation } from '@/types'
+import { LEGACY_LOCATION_MAP } from '@/types'
 
 class YeodongDB extends Dexie {
   ingredients!: EntityTable<Ingredient, 'id'>
@@ -27,11 +28,21 @@ class YeodongDB extends Dexie {
           }
         }
       })
-    this.version(3).stores({
-      ingredients: 'id, location, userId, householdId, expiryDate, updatedAt',
-      recipes: 'id, isBuiltin, userId, householdId, category, updatedAt',
-      syncQueue: '++id, table, recordId, createdAt',
-    })
+    this.version(4)
+      .stores({
+        ingredients: 'id, location, userId, householdId, expiryDate, updatedAt',
+        recipes: 'id, isBuiltin, userId, householdId, category, updatedAt',
+        syncQueue: '++id, table, recordId, createdAt',
+      })
+      .upgrade(async (tx) => {
+        const ingredients = await tx.table('ingredients').toArray()
+        for (const item of ingredients) {
+          const next = LEGACY_LOCATION_MAP[item.location as string]
+          if (next && next !== item.location) {
+            await tx.table('ingredients').update(item.id, { location: next })
+          }
+        }
+      })
   }
 }
 

@@ -1,4 +1,4 @@
-import type { Ingredient, StorageLocation } from '@/types'
+import type { Ingredient, ColdStorageLocation } from '@/types'
 import { SHELF_LEVELS, STORAGE_META } from '@/types'
 import { IngredientCard } from './IngredientCard'
 import { Refrigerator, Snowflake } from 'lucide-react'
@@ -15,7 +15,7 @@ const SECTION_THEMES: Record<'fridge' | 'freezer', { bg: string; border: string 
 }
 
 interface FridgeSectionProps {
-  location: Extract<StorageLocation, 'fridge1' | 'fridge2' | 'freezer'>
+  location: ColdStorageLocation
   ingredients: Ingredient[]
   isActive: boolean
   onActivate: () => void
@@ -40,7 +40,7 @@ export function FridgeSection({
 
   return (
     <section
-      className={`flex min-h-0 flex-1 flex-col ${isActive ? 'opacity-100' : 'opacity-95'}`}
+      className={`flex min-h-0 min-w-0 flex-1 flex-col ${isActive ? 'opacity-100' : 'opacity-95'}`}
       onClick={onActivate}
     >
       <div
