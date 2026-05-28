@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Ingredient, Recipe, SyncQueueItem, StorageLocation } from '@/types'
+import type { Ingredient, Recipe, SyncQueueItem } from '@/types'
 import { LEGACY_LOCATION_MAP } from '@/types'
 
 class YeodongDB extends Dexie {
