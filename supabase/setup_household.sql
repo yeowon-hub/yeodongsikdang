@@ -1,4 +1,5 @@
--- 가족(공유) 그룹: households + members, ingredients/recipes에 household_id 추가
+-- 가족 만들기가 안 될 때: Supabase SQL Editor에서 이 파일 전체를 Run 하세요.
+-- (001, 002를 먼저 실행한 뒤 사용하는 것을 권장합니다)
 
 create table if not exists public.households (
   id uuid primary key default gen_random_uuid(),
@@ -22,11 +23,6 @@ alter table public.ingredients
 alter table public.recipes
   add column if not exists household_id uuid references public.households(id) on delete cascade;
 
-create index if not exists ingredients_household_id_idx on public.ingredients(household_id);
-create index if not exists recipes_household_id_idx on public.recipes(household_id);
-create index if not exists household_members_user_id_idx on public.household_members(user_id);
-
--- 멤버십 확인 (RLS용)
 create or replace function public.is_household_member(hid uuid)
 returns boolean
 language sql
@@ -41,7 +37,6 @@ as $$
   );
 $$;
 
--- 초대 코드 생성
 create or replace function public.generate_invite_code()
 returns text
 language plpgsql
@@ -58,7 +53,6 @@ begin
 end;
 $$;
 
--- 가족 만들기
 create or replace function public.create_household(household_name text default '우리 집')
 returns json
 language plpgsql
@@ -95,12 +89,12 @@ begin
     'id', new_id,
     'name', trimmed_name,
     'invite_code', code,
-    'role', 'owner'
+    'role', 'owner',
+    'member_count', 1
   );
 end;
 $$;
 
--- 초대 코드로 참가
 create or replace function public.join_household(code text)
 returns json
 language plpgsql
@@ -143,7 +137,9 @@ begin
         select role from public.household_members
         where household_id = hid and user_id = auth.uid()
       ),
-      'already_member', true
+      'member_count', (
+        select count(*)::int from public.household_members where household_id = hid
+      )
     );
   end if;
 
@@ -154,12 +150,14 @@ begin
     'id', hid,
     'name', hname,
     'invite_code', hcode,
-    'role', 'member'
+    'role', 'member',
+    'member_count', (
+      select count(*)::int from public.household_members where household_id = hid
+    )
   );
 end;
 $$;
 
--- 내 가족 정보 (첫 번째 가입 그룹)
 create or replace function public.get_my_household()
 returns json
 language sql
@@ -188,30 +186,25 @@ as $$
   ) sub;
 $$;
 
--- RLS: households
 alter table public.households enable row level security;
+alter table public.household_members enable row level security;
 
 drop policy if exists "Household members can view household" on public.households;
 create policy "Household members can view household"
   on public.households for select
   using (public.is_household_member(id));
 
--- RLS: household_members
-alter table public.household_members enable row level security;
-
 drop policy if exists "Household members can view members" on public.household_members;
 create policy "Household members can view members"
   on public.household_members for select
   using (public.is_household_member(household_id));
 
--- RLS: ingredients (가족 공유 + 기존 개인 데이터 호환)
 drop policy if exists "Users manage own ingredients" on public.ingredients;
 drop policy if exists "Household members manage ingredients" on public.ingredients;
-
 create policy "Household members manage ingredients"
   on public.ingredients for all
   using (
-  (household_id is not null and public.is_household_member(household_id))
+    (household_id is not null and public.is_household_member(household_id))
     or (household_id is null and auth.uid() = user_id)
   )
   with check (
@@ -219,10 +212,8 @@ create policy "Household members manage ingredients"
     or (household_id is null and auth.uid() = user_id)
   );
 
--- RLS: recipes
 drop policy if exists "Users manage own recipes" on public.recipes;
 drop policy if exists "Household members manage recipes" on public.recipes;
-
 create policy "Household members manage recipes"
   on public.recipes for all
   using (

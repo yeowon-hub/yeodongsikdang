@@ -5,6 +5,13 @@ import { User, LogIn } from 'lucide-react'
 
 export function AppLayout() {
   const { user, isConfigured } = useAuth()
+  const profileName =
+    ((user?.user_metadata?.nickname ||
+      user?.user_metadata?.name ||
+      user?.user_metadata?.full_name ||
+      user?.user_metadata?.preferred_username) as string | undefined) ??
+    user?.email?.split('@')[0] ??
+    '내 계정'
 
   return (
     <div className="flex min-h-full flex-col bg-gray-50">
@@ -22,7 +29,7 @@ export function AppLayout() {
               {user ? (
                 <>
                   <User size={14} />
-                  <span className="max-w-[80px] truncate">{user.email?.split('@')[0]}</span>
+                  <span className="max-w-[80px] truncate">{profileName}</span>
                 </>
               ) : (
                 <>

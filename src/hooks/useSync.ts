@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
-import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured, getRedirectUrl } from '@/lib/supabase'
 import { db, getPendingSyncItems, clearSyncItem } from '@/lib/db'
 import type { Ingredient, Recipe } from '@/types'
 
@@ -113,11 +113,14 @@ export function useAuth() {
     return supabase.auth.signInWithPassword({ email, password })
   }
 
-  const signInWithGoogle = async () => {
+  const signInWithKakao = async () => {
     if (!supabase) throw new Error('Supabase가 설정되지 않았습니다')
     return supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/account` },
+      provider: 'kakao',
+      options: {
+        redirectTo: getRedirectUrl(),
+        scopes: 'profile_nickname profile_image',
+      },
     })
   }
 
@@ -126,7 +129,7 @@ export function useAuth() {
     await supabase.auth.signOut()
   }
 
-  return { user, session, loading, signUp, signIn, signInWithGoogle, signOut, isConfigured: isSupabaseConfigured }
+  return { user, session, loading, signUp, signIn, signInWithKakao, signOut, isConfigured: isSupabaseConfigured }
 }
 
 export function useSync(user: User | null, householdId: string | null) {

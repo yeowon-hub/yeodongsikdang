@@ -4,7 +4,15 @@ import { HouseholdPanel } from '@/components/auth/HouseholdPanel'
 import { LogIn, Mail, Lock } from 'lucide-react'
 
 export function AuthForm() {
-  const { user, signIn, signUp, signInWithGoogle, signOut, isConfigured } = useAuth()
+  const { user, signIn, signUp, signInWithKakao, signOut, isConfigured } = useAuth()
+  const profileName =
+    ((user?.user_metadata?.nickname ||
+      user?.user_metadata?.name ||
+      user?.user_metadata?.full_name ||
+      user?.user_metadata?.preferred_username) as string | undefined) ??
+    user?.email ??
+    '카카오 사용자'
+
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,7 +39,7 @@ export function AuthForm() {
       <div className="px-4 py-6">
         <div className="rounded-2xl bg-white p-6 shadow-sm text-center">
           <p className="text-lg font-semibold text-gray-800">로그인됨</p>
-          <p className="mt-1 text-sm text-gray-500">{user.email}</p>
+          <p className="mt-1 text-sm text-gray-500">{profileName}</p>
           <p className="mt-4 text-xs text-green-600">
             아래에서 가족을 설정하면 여러 기기에서 재료·레시피가 공유됩니다
           </p>
@@ -48,6 +56,19 @@ export function AuthForm() {
     )
   }
 
+  const formatAuthError = (message: string) => {
+    if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+      return 'Supabase 서버에 연결하지 못했습니다. 인터넷 연결과 Supabase URL 설정을 확인해주세요.'
+    }
+    if (message.toLowerCase().includes('email rate limit exceeded')) {
+      return '이메일 전송 횟수 제한에 걸렸습니다. 1시간 정도 기다린 뒤 다시 시도하거나, Supabase에서 이메일 확인(Confirm email)을 끄고 시도해주세요.'
+    }
+    if (message.toLowerCase().includes('unsupported provider')) {
+      return 'Supabase에서 Kakao provider가 비활성화되어 있습니다. Authentication > Providers > Kakao를 켜주세요.'
+    }
+    return message
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -55,9 +76,22 @@ export function AuthForm() {
     try {
       const { error: authError } =
         mode === 'login' ? await signIn(email, password) : await signUp(email, password)
-      if (authError) setError(authError.message)
+      if (authError) setError(formatAuthError(authError.message))
     } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다')
+      setError(formatAuthError(err instanceof Error ? err.message : '오류가 발생했습니다'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKakao = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      const { error: authError } = await signInWithKakao()
+      if (authError) setError(formatAuthError(authError.message))
+    } catch (err) {
+      setError(formatAuthError(err instanceof Error ? err.message : '카카오 로그인에 실패했습니다'))
     } finally {
       setLoading(false)
     }
@@ -110,10 +144,11 @@ export function AuthForm() {
 
         <button
           type="button"
-          onClick={() => signInWithGoogle()}
-          className="mt-3 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-700"
+          onClick={handleKakao}
+          disabled={loading}
+          className="mt-3 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-700 disabled:opacity-50"
         >
-          Google로 계속하기
+          카카오로 계속하기
         </button>
 
         <p className="mt-4 text-center text-sm text-gray-500">
