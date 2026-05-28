@@ -119,7 +119,12 @@ export function useAuth() {
       provider: 'kakao',
       options: {
         redirectTo: getRedirectUrl(),
+        // Keep Kakao consent minimal: nickname + profile image only.
+        // queryParams.scope helps override provider-side default scope merges.
         scopes: 'profile_nickname profile_image',
+        queryParams: {
+          scope: 'profile_nickname profile_image',
+        },
       },
     })
   }
