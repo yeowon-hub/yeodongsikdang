@@ -18,7 +18,7 @@ export default defineConfig({
         name: '여동식당',
         short_name: '여동식당',
         description: '냉장고 재료로 레시피를 추천받는 나만의 식당',
-        theme_color: '#FF6B6B',
+        theme_color: '#F4B183',
         background_color: '#E8F4FC',
         display: 'standalone',
         orientation: 'portrait',

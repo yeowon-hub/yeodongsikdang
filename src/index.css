@@ -21,6 +21,14 @@
   --color-freezer-dark: #9BB8D4;
   --color-brand: #FF6B6B;
   --color-brand-dark: #E85555;
+  --color-header: #F4B183;
+  --color-header-text: #4A3728;
+  --color-tile-fridge: #D6E4F5;
+  --color-tile-kimchi: #F5E6A8;
+  --color-tile-shelf: #E8D4BC;
+  --color-tile-pantry: #B8A99A;
+  --color-tile-recipe: #C5E8E0;
+  --color-expiring: #F8C4C4;
 }
 
 * {

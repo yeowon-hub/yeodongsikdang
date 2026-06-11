@@ -57,7 +57,7 @@ export function GlobalSearch() {
 
   return (
     <div className="relative min-w-0 flex-1">
-      <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand">
+      <div className="flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-white/80">
         <Search size={16} className="shrink-0 text-gray-400" />
         <input
           type="search"

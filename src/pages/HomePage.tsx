@@ -1,91 +1,112 @@
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Clock } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { useIngredients } from '@/hooks/useIngredients'
 import { getExpiringSoon, getExpiryStatus } from '@/lib/recommend'
 import { sortByExpiry } from '@/lib/sortIngredients'
-import { HOME_TILES, getLocationRoute } from '@/lib/navigation'
-import { Refrigerator, Snowflake, Package, Archive } from 'lucide-react'
+import { ASSETS } from '@/lib/assets'
+import { getLocationRoute } from '@/lib/navigation'
 
-const TILE_ICONS = {
-  general: Refrigerator,
-  kimchi: Snowflake,
-  shelf: Package,
-  pantry: Archive,
-} as const
+const NAV_TILES = [
+  { id: 'fridge', route: '/fridge/general', image: ASSETS.tiles.fridge, alt: '일반 냉장고' },
+  { id: 'kimchi', route: '/fridge/kimchi', image: ASSETS.tiles.kimchi, alt: '김치냉장고' },
+  { id: 'shelf', route: '/shelf', image: ASSETS.tiles.shelf, alt: '선반' },
+  { id: 'pantry', route: '/pantry', image: ASSETS.tiles.pantry, alt: '펜트리' },
+] as const
 
 export function HomePage() {
   const { ingredients } = useIngredients()
   const expiring = sortByExpiry(getExpiringSoon(ingredients, 3))
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-4 pt-3">
-      {expiring.length > 0 && (
-        <section className="mb-4 shrink-0">
-          <div className="mb-2 flex items-center gap-1.5">
-            <AlertTriangle size={16} className="text-amber-600" />
-            <h2 className="text-sm font-bold text-gray-800">유통기한 임박</h2>
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-              {expiring.length}개
-            </span>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {expiring.map((ing) => {
-              const status = getExpiryStatus(ing.expiryDate)
-              return (
-                <Link
-                  key={ing.id}
-                  to={getLocationRoute(ing.location)}
-                  className="shrink-0"
-                >
-                  <div
-                    className={`flex w-[100px] flex-col rounded-xl border bg-white p-2 shadow-sm ${
-                      status === 'expired'
-                        ? 'border-red-200'
-                        : status === 'soon'
-                          ? 'border-amber-200'
-                          : 'border-gray-100'
-                    }`}
-                  >
-                    {ing.imageUrl ? (
-                      <img
-                        src={ing.imageUrl}
-                        alt=""
-                        className="mb-1 h-12 w-full rounded-lg object-cover"
-                      />
-                    ) : null}
-                    <span className="truncate text-xs font-medium text-gray-800">{ing.name}</span>
-                    <span className="mt-0.5 flex items-center gap-0.5 text-[10px] text-amber-600">
-                      <Clock size={10} />
-                      {ing.expiryDate}
-                    </span>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        </section>
-      )}
-
-      <section className="flex min-h-0 flex-1 flex-col">
-        <h2 className="mb-3 shrink-0 text-sm font-bold text-gray-800">보관함</h2>
-        <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3">
-          {HOME_TILES.map((tile) => {
-            const Icon = TILE_ICONS[tile.id]
-            return (
-              <Link
-                key={tile.id}
-                to={tile.route}
-                className={`flex min-h-0 flex-col items-center justify-center gap-2 rounded-2xl border border-white/60 shadow-md transition-transform active:scale-[0.98] ${tile.color}`}
-              >
-                <div className="rounded-full bg-white/70 p-4 shadow-sm">
-                  <Icon size={32} strokeWidth={1.75} />
-                </div>
-                <span className="text-base font-bold">{tile.label}</span>
-              </Link>
-            )
-          })}
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+      <div
+        className="relative mx-4 mt-3 shrink-0 overflow-hidden rounded-[28px] bg-cover bg-center shadow-md"
+        style={{ backgroundImage: `url(${ASSETS.expiringBanner})` }}
+      >
+        <div className="min-h-[88px] px-4 py-3">
+          {expiring.length > 0 ? (
+            <>
+              <p className="mb-2 text-[11px] font-semibold text-gray-700/80">유통기한 임박</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {expiring.map((ing) => {
+                  const status = getExpiryStatus(ing.expiryDate)
+                  return (
+                    <Link
+                      key={ing.id}
+                      to={getLocationRoute(ing.location)}
+                      className="shrink-0"
+                    >
+                      <div
+                        className={`flex w-[88px] flex-col rounded-2xl border bg-white/90 p-1.5 shadow-sm backdrop-blur-sm ${
+                          status === 'expired'
+                            ? 'border-red-200'
+                            : status === 'soon'
+                              ? 'border-amber-200'
+                              : 'border-white/80'
+                        }`}
+                      >
+                        {ing.imageUrl ? (
+                          <img
+                            src={ing.imageUrl}
+                            alt=""
+                            className="mb-1 h-11 w-full rounded-xl object-cover"
+                          />
+                        ) : (
+                          <div className="mb-1 flex h-11 items-center justify-center rounded-xl bg-white/60 text-lg">
+                            🥬
+                          </div>
+                        )}
+                        <span className="truncate text-[10px] font-semibold text-gray-800">
+                          {ing.name}
+                        </span>
+                        <span className="mt-0.5 flex items-center gap-0.5 text-[9px] text-amber-700">
+                          <Clock size={9} />
+                          {ing.expiryDate}
+                        </span>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <p className="flex min-h-[64px] items-center justify-center text-center text-xs text-gray-600/70">
+              임박한 재료가 없어요
+            </p>
+          )}
         </div>
+      </div>
+
+      <section className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 px-4 py-3">
+        {NAV_TILES.map((tile) => (
+          <Link
+            key={tile.id}
+            to={tile.route}
+            className="block min-h-0 overflow-hidden rounded-[28px] shadow-md transition-transform active:scale-[0.98]"
+          >
+            <img
+              src={tile.image}
+              alt={tile.alt}
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+          </Link>
+        ))}
       </section>
+
+      <div className="shrink-0 px-4 pb-4">
+        <Link
+          to="/recipes"
+          className="block overflow-hidden rounded-[28px] shadow-md transition-transform active:scale-[0.98]"
+        >
+          <img
+            src={ASSETS.tiles.recipe}
+            alt="레시피"
+            className="h-auto w-full object-cover"
+            draggable={false}
+          />
+        </Link>
+      </div>
     </div>
   )
 }

@@ -15,17 +15,19 @@ export function AppLayout() {
     '내 계정'
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-gray-50">
-      <header className="z-40 shrink-0 border-b border-gray-100 bg-white/90 backdrop-blur-md">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
+      <header className="z-40 shrink-0 bg-header shadow-sm">
         <div className="mx-auto flex max-w-lg items-center gap-2 px-3 py-2.5">
           <Link to="/home" className="shrink-0">
-            <h1 className="text-base font-bold leading-tight text-brand">여동식당</h1>
+            <h1 className="text-base font-extrabold leading-tight tracking-tight text-header-text">
+              여동식당
+            </h1>
           </Link>
           <GlobalSearch />
           {isConfigured && (
             <Link
               to="/account"
-              className="flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-2 py-1.5 text-[10px] font-medium text-gray-600"
+              className="flex shrink-0 items-center gap-1 rounded-full bg-white/70 px-2 py-1.5 text-[10px] font-medium text-header-text/80"
             >
               {user ? (
                 <>
