@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { ShelfView } from '@/components/shelf/ShelfView'
+import { PantryView } from '@/components/pantry/PantryView'
 import { IngredientForm } from '@/components/fridge/IngredientForm'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { Ingredient } from '@/types'
 
-export function ShelfPage() {
+export function PantryPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
   const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient } =
-    useIngredients('shelf')
+    useIngredients('pantry')
 
   const handleSubmit = async (data: Parameters<typeof addIngredient>[0]) => {
     if (editing) {
@@ -22,7 +22,7 @@ export function ShelfPage() {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <ShelfView
+      <PantryView
         ingredients={ingredients}
         onIngredientClick={(ing) => {
           setEditing(ing)
@@ -54,7 +54,7 @@ export function ShelfPage() {
         onDelete={editing ? () => deleteIngredient(editing.id) : undefined}
         onMove={editing ? (loc) => moveIngredient(editing.id, loc) : undefined}
         initial={editing}
-        defaultLocation="shelf"
+        defaultLocation="pantry"
       />
     </div>
   )

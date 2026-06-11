@@ -1,5 +1,6 @@
 import { Outlet, Link } from 'react-router-dom'
 import { BottomTabBar } from './BottomTabBar'
+import { GlobalSearch } from './GlobalSearch'
 import { useAuth } from '@/hooks/useSync'
 import { User, LogIn } from 'lucide-react'
 
@@ -14,34 +15,34 @@ export function AppLayout() {
     '내 계정'
 
   return (
-    <div className="flex min-h-full flex-col bg-gray-50">
-      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
-          <div>
-            <h1 className="text-lg font-bold text-brand">여동식당</h1>
-            <p className="text-xs text-gray-500">나만의 주방, 나만의 레시피</p>
-          </div>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-gray-50">
+      <header className="z-40 shrink-0 border-b border-gray-100 bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-lg items-center gap-2 px-3 py-2.5">
+          <Link to="/home" className="shrink-0">
+            <h1 className="text-base font-bold leading-tight text-brand">여동식당</h1>
+          </Link>
+          <GlobalSearch />
           {isConfigured && (
             <Link
               to="/account"
-              className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600"
+              className="flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-2 py-1.5 text-[10px] font-medium text-gray-600"
             >
               {user ? (
                 <>
                   <User size={14} />
-                  <span className="max-w-[80px] truncate">{profileName}</span>
+                  <span className="hidden max-w-[56px] truncate sm:inline">{profileName}</span>
                 </>
               ) : (
                 <>
                   <LogIn size={14} />
-                  로그인
+                  <span className="hidden sm:inline">로그인</span>
                 </>
               )}
             </Link>
           )}
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col min-h-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+      <main className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-hidden pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
         <Outlet />
       </main>
       <BottomTabBar />

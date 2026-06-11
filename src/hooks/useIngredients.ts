@@ -1,8 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { v4 as uuidv4 } from 'uuid'
 import { db, enqueueSync } from '@/lib/db'
-import type { Ingredient, StorageLocation, ColdStorageLocation } from '@/types'
-import { COLD_STORAGE_LOCATIONS } from '@/types'
+import type { Ingredient, StorageLocation } from '@/types'
 
 export function useIngredients(location?: StorageLocation) {
   const ingredients = useLiveQuery(async () => {
@@ -83,7 +82,6 @@ export function useExpiringCount() {
     const threshold = new Date(now)
     threshold.setDate(threshold.getDate() + 3)
     return all.filter((i) => {
-      if (!COLD_STORAGE_LOCATIONS.includes(i.location as ColdStorageLocation)) return false
       if (!i.expiryDate) return false
       const expiry = new Date(i.expiryDate)
       expiry.setHours(0, 0, 0, 0)

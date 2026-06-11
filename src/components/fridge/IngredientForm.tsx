@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Camera, X } from 'lucide-react'
+import { compressImageToDataUrl } from '@/lib/image'
 import type { Ingredient, StorageLocation } from '@/types'
 import {
   ALL_STORAGE_LOCATIONS,
@@ -19,6 +20,7 @@ interface IngredientFormProps {
     location: StorageLocation
     expiryDate?: string
     shelfLevel?: number
+    imageUrl?: string
   }) => void
   onDelete?: () => void
   onMove?: (location: StorageLocation) => void
@@ -40,6 +42,9 @@ export function IngredientForm({
   const [unit, setUnit] = useState('개')
   const [expiryDate, setExpiryDate] = useState('')
   const [shelfLevel, setShelfLevel] = useState(0)
+  const [imageUrl, setImageUrl] = useState<string | undefined>()
+  const [imageError, setImageError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (initial) {
@@ -48,13 +53,16 @@ export function IngredientForm({
       setUnit(initial.unit)
       setExpiryDate(initial.expiryDate ?? '')
       setShelfLevel(initial.shelfLevel ?? 0)
+      setImageUrl(initial.imageUrl)
     } else {
       setName('')
       setQuantity(1)
       setUnit('개')
       setExpiryDate('')
       setShelfLevel(0)
+      setImageUrl(undefined)
     }
+    setImageError('')
   }, [initial, open])
 
   useEffect(() => {
@@ -81,8 +89,24 @@ export function IngredientForm({
       location: initial?.location ?? defaultLocation,
       expiryDate: expiryDate || undefined,
       shelfLevel: showShelfLevel ? shelfLevel : undefined,
+      imageUrl,
     })
     onClose()
+  }
+
+  const handleImagePick = async (file: File | undefined) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setImageError('이미지 파일만 올릴 수 있어요')
+      return
+    }
+    try {
+      setImageError('')
+      const dataUrl = await compressImageToDataUrl(file)
+      setImageUrl(dataUrl)
+    } catch {
+      setImageError('사진을 불러오지 못했어요')
+    }
   }
 
   return (
@@ -125,6 +149,48 @@ export function IngredientForm({
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">사진 (선택)</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => {
+                    void handleImagePick(e.target.files?.[0])
+                    e.target.value = ''
+                  }}
+                />
+                {imageUrl ? (
+                  <div className="relative">
+                    <img
+                      src={imageUrl}
+                      alt="재료 사진"
+                      className="h-36 w-full rounded-xl object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImageUrl(undefined)}
+                      className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white"
+                      aria-label="사진 삭제"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-200 py-8 text-gray-500 hover:border-brand hover:text-brand"
+                  >
+                    <Camera size={28} />
+                    <span className="text-sm">사진 추가하기</span>
+                  </button>
+                )}
+                {imageError && <p className="mt-1 text-xs text-red-500">{imageError}</p>}
+              </div>
+
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">재료 이름</label>
                 <input
@@ -178,7 +244,11 @@ export function IngredientForm({
               {showShelfLevel && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
-                    {defaultLocation === 'shelf' ? '선반 칸' : '선반 단'}
+                    {defaultLocation === 'shelf'
+                      ? '선반 칸'
+                      : defaultLocation === 'pantry'
+                        ? '펜트리 칸'
+                        : '선반 단'}
                   </label>
                   <select
                     value={shelfLevel}
@@ -188,7 +258,7 @@ export function IngredientForm({
                     {SHELF_LEVELS.map((level) => (
                       <option key={level} value={level}>
                         {level + 1}
-                        {defaultLocation === 'shelf' ? '칸' : '단'}
+                        {defaultLocation === 'shelf' || defaultLocation === 'pantry' ? '칸' : '단'}
                         {level === 0 ? ' (최상)' : level === 3 ? ' (최하)' : ''}
                       </option>
                     ))}

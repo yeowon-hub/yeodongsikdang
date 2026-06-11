@@ -1,14 +1,11 @@
 import { useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
-import { CompartmentDoor } from './CompartmentDoor'
-import { FridgeInterior } from './FridgeInterior'
+import { FridgeInterior, getFridgeFrameStyle } from './FridgeInterior'
 import { IngredientForm } from './IngredientForm'
+import { CompartmentSwipeView } from '@/components/shared/CompartmentSwipeView'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { ColdStorageLocation, FridgeUnitId, Ingredient } from '@/types'
-import { FRIDGE_UNITS } from '@/types'
-
-type OpenSide = 'freezer' | 'fridge' | null
+import { FRIDGE_UNITS, STORAGE_META } from '@/types'
 
 const PAGE_BG: Record<FridgeUnitId, string> = {
   general: 'bg-fridge',
@@ -24,12 +21,9 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
   const freezerLoc = unit.compartments[0].location
   const fridgeLoc = unit.compartments[1].location
 
-  const [openSide, setOpenSide] = useState<OpenSide>(null)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
-
-  const openLocation: ColdStorageLocation | null =
-    openSide === 'freezer' ? freezerLoc : openSide === 'fridge' ? fridgeLoc : null
+  const [activeCompartment, setActiveCompartment] = useState(0)
 
   const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient } =
     useIngredients()
@@ -53,72 +47,48 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
     setEditing(undefined)
   }
 
-  const defaultAddLocation = openLocation ?? freezerLoc
+  const defaultAddLocation: ColdStorageLocation =
+    activeCompartment === 0 ? freezerLoc : fridgeLoc
+
+  const compartments = unit.compartments.map((comp) => ({
+    ...comp,
+    kind: STORAGE_META[comp.location].kind as 'fridge' | 'freezer',
+  }))
+
+  const slides = compartments.map((comp) => ({
+    id: comp.location,
+    label: comp.shortLabel,
+    content: (
+      <FridgeInterior
+        location={comp.location}
+        ingredients={byLocation[comp.location]}
+        onIngredientClick={(ing) => {
+          setEditing(ing)
+          setFormOpen(true)
+        }}
+      />
+    ),
+  }))
+
+  const activeKind = compartments[activeCompartment]?.kind ?? 'fridge'
 
   return (
-    <div className={`relative flex min-h-0 flex-1 flex-col ${PAGE_BG[unitId]}`}>
+    <div className={`relative flex min-h-0 flex-1 flex-col overflow-hidden ${PAGE_BG[unitId]}`}>
       <div className="shrink-0 px-4 pb-2 pt-2">
         <h2 className="text-base font-bold text-gray-800">{unit.label}</h2>
-        <p className="text-[11px] text-gray-500">
-          {openSide
-            ? '문 닫기를 누르면 양문이 닫혀요'
-            : '냉동실·냉장실 문을 탭해서 여세요'}
-        </p>
+        <p className="text-[11px] text-gray-500">좌우로 밀어 냉동실·냉장실을 바꿔요</p>
       </div>
 
-      <div className="relative flex min-h-0 flex-1 flex-col px-3 pb-2">
-        <AnimatePresence mode="wait">
-          {openLocation ? (
-            <motion.div
-              key="interior"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.25 }}
-              className="flex min-h-0 flex-1 flex-col"
-            >
-              <FridgeInterior
-                location={openLocation}
-                ingredients={byLocation[openLocation]}
-                onIngredientClick={(ing) => {
-                  setEditing(ing)
-                  setFormOpen(true)
-                }}
-                onClose={() => setOpenSide(null)}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="doors"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex min-h-0 flex-1 flex-row gap-1"
-              style={{ perspective: 1400 }}
-            >
-              <CompartmentDoor
-                side="left"
-                shortLabel="냉동실"
-                kind="freezer"
-                unitId={unitId}
-                isOpen={false}
-                onOpen={() => setOpenSide('freezer')}
-              />
-              <div className="w-1 shrink-0 rounded-full bg-gray-400/40 shadow-inner" aria-hidden />
-              <CompartmentDoor
-                side="right"
-                shortLabel="냉장실"
-                kind="fridge"
-                unitId={unitId}
-                isOpen={false}
-                onOpen={() => setOpenSide('fridge')}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className="flex min-h-0 flex-1 flex-col px-3 pb-2">
+        <CompartmentSwipeView
+          initialIndex={activeCompartment}
+          onIndexChange={setActiveCompartment}
+          slides={slides}
+          frameStyle={getFridgeFrameStyle(activeKind)}
+        />
       </div>
 
-      {openLocation && !formOpen && (
+      {!formOpen && (
         <button
           type="button"
           onClick={() => {

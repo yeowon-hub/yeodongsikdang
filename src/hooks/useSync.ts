@@ -15,6 +15,7 @@ function toDbIngredient(row: Record<string, unknown>): Ingredient {
     location: row.location as Ingredient['location'],
     expiryDate: (row.expiry_date as string) || undefined,
     shelfLevel: (row.shelf_level as number) || undefined,
+    imageUrl: (row.image_url as string) || undefined,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     synced: true,
@@ -52,6 +53,7 @@ function ingredientToRow(item: Ingredient, userId: string, householdId: string |
     location: item.location,
     expiry_date: item.expiryDate || null,
     shelf_level: item.shelfLevel ?? null,
+    image_url: item.imageUrl || null,
     created_at: item.createdAt,
     updated_at: item.updatedAt,
   }

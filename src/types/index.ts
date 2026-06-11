@@ -4,6 +4,7 @@ export type StorageLocation =
   | 'kimchi_fridge'
   | 'kimchi_freezer'
   | 'shelf'
+  | 'pantry'
 
 export type ColdStorageLocation =
   | 'general_fridge'
@@ -45,7 +46,7 @@ export const STORAGE_META: Record<
   {
     label: string
     shortLabel: string
-    kind: 'fridge' | 'freezer' | 'shelf'
+    kind: 'fridge' | 'freezer' | 'shelf' | 'pantry'
     unitId?: FridgeUnitId
   }
 > = {
@@ -74,6 +75,7 @@ export const STORAGE_META: Record<
     unitId: 'kimchi',
   },
   shelf: { label: '선반', shortLabel: '선반', kind: 'shelf' },
+  pantry: { label: '펜트리', shortLabel: '펜트리', kind: 'pantry' },
 }
 
 export const ALL_STORAGE_LOCATIONS = Object.keys(STORAGE_META) as StorageLocation[]
@@ -91,7 +93,7 @@ export function isColdLocation(location: StorageLocation) {
 }
 
 export function usesShelfLevel(location: StorageLocation) {
-  return isColdLocation(location) || location === 'shelf'
+  return isColdLocation(location) || location === 'shelf' || location === 'pantry'
 }
 
 export interface Ingredient {
@@ -104,6 +106,7 @@ export interface Ingredient {
   location: StorageLocation
   expiryDate?: string
   shelfLevel?: number
+  imageUrl?: string
   createdAt: string
   updatedAt: string
   synced?: boolean
