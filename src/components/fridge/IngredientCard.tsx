@@ -34,7 +34,7 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
         mini
           ? 'min-w-[56px] max-w-[64px] p-1'
           : compact
-            ? 'box-border p-1.5'
+            ? 'box-border p-1'
             : 'w-full p-3'
       }`}
     >
@@ -43,30 +43,28 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
           src={ingredient.imageUrl}
           alt=""
           className={`w-full shrink-0 object-cover ${
-            mini ? 'mb-0.5 h-8' : compact ? 'mb-0.5 h-9' : 'mb-2 h-24'
+            mini ? 'mb-0.5 h-8' : compact ? 'mb-0.5 h-6' : 'mb-2 h-24'
           }`}
         />
       )}
       <span
         className={`block w-full truncate font-medium text-gray-800 ${
-          mini ? 'px-0.5 text-[10px] leading-tight' : compact ? 'text-[11px] leading-tight' : ''
+          mini ? 'px-0.5 text-[10px] leading-tight' : compact ? 'text-[10px] leading-tight' : ''
         }`}
       >
         {ingredient.name}
       </span>
       <span
         className={`block w-full truncate text-gray-500 ${
-          mini ? 'px-0.5 text-[9px] leading-tight' : compact ? 'text-[10px] leading-tight' : 'mt-0.5 text-xs'
+          mini ? 'px-0.5 text-[9px] leading-tight' : compact ? 'text-[9px] leading-tight' : 'mt-0.5 text-xs'
         }`}
       >
         {ingredient.quantity}
         {ingredient.unit}
       </span>
-      {ingredient.expiryDate && !mini && (
+      {ingredient.expiryDate && !mini && !compact && (
         <span
-          className={`mt-auto flex w-full items-center gap-0.5 truncate ${
-            compact ? 'text-[9px]' : 'text-[10px]'
-          } ${
+          className={`mt-auto flex w-full items-center gap-0.5 truncate text-[10px] ${
             expiryStatus === 'expired'
               ? 'text-red-600'
               : expiryStatus === 'soon'

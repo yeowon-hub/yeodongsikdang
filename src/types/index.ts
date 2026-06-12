@@ -169,8 +169,8 @@ export const SHELF_LEVELS = [0, 1, 2, 3, 4, 5, 6] as const
 
 /** compact 재료 카드 고정 크기(px) — 글씨가 커져도 칸 크기 유지 */
 export const INGREDIENT_CARD_SIZE = {
-  compactWidth: 76,
-  compactHeight: 84,
+  compactWidth: 68,
+  compactHeight: 54,
 } as const
 
 export type HouseholdRole = 'owner' | 'member'

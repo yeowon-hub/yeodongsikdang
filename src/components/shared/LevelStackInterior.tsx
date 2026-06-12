@@ -8,24 +8,30 @@ export interface LevelStackTheme {
   border: string
 }
 
+export interface LevelStackTopSelector {
+  options: { value: number; label: string }[]
+  value: number
+  onChange: (value: number) => void
+}
+
 interface LevelStackInteriorProps {
   ingredients: Ingredient[]
   onIngredientClick: (ingredient: Ingredient) => void
   theme: LevelStackTheme
   levelLabel: '칸' | '단'
-  headerLabel?: string
+  topSelector?: LevelStackTopSelector
   emptyMessage?: string
   dividerVariant?: 'metal' | 'wood'
 }
 
-const ROW_HEIGHT_PX = 76
+const ROW_HEIGHT_PX = 62
 
 export function LevelStackInterior({
   ingredients,
   onIngredientClick,
   theme,
   levelLabel,
-  headerLabel,
+  topSelector,
   emptyMessage,
   dividerVariant = 'metal',
 }: LevelStackInteriorProps) {
@@ -41,16 +47,28 @@ export function LevelStackInterior({
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      {headerLabel && (
-        <div className="shrink-0 border-b border-black/5 px-3 py-2">
-          <h3 className="text-xs font-semibold text-gray-700">{headerLabel}</h3>
-        </div>
-      )}
-
       <div
         className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
         style={{ backgroundColor: theme.bg }}
       >
+        {topSelector && (
+          <div className="flex shrink-0 gap-1 border-b border-black/5 px-2.5 py-1.5">
+            {topSelector.options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => topSelector.onChange(opt.value)}
+                className={`flex-1 rounded-md py-1 text-[10px] font-medium transition-colors ${
+                  topSelector.value === opt.value
+                    ? 'bg-white/70 text-gray-800 shadow-sm'
+                    : 'bg-white/40 text-gray-600 hover:bg-white/55'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
         {grouped.map(({ level, items }) => (
           <div
             key={level}
@@ -64,13 +82,13 @@ export function LevelStackInterior({
             </div>
             <div
               data-inner-swipe
-              className="shrink-0 overflow-x-auto overflow-y-hidden px-2 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="mx-2 shrink-0 overflow-x-auto overflow-y-hidden px-1 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               style={{ height: ROW_HEIGHT_PX }}
             >
               {items.length === 0 ? (
                 <p className="flex h-full items-center text-[11px] text-gray-400">비어있음</p>
               ) : (
-                <div className="flex h-full flex-nowrap items-start gap-1.5">
+                <div className="flex h-full flex-nowrap items-center gap-1.5">
                   {items.map((item) => (
                     <IngredientCard
                       key={item.id}
@@ -83,7 +101,7 @@ export function LevelStackInterior({
               )}
             </div>
             <div
-              className={`mx-1 mb-1 shrink-0 rounded-sm shadow-sm ${
+              className={`mx-2 mb-1.5 mt-0.5 shrink-0 rounded-sm shadow-sm ${
                 dividerVariant === 'wood' ? 'h-2.5' : 'h-1.5 rounded-full'
               }`}
               style={{ background: dividerStyle }}

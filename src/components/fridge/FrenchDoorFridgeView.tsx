@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { FridgeInterior, getFridgeFrameStyle } from './FridgeInterior'
+import { getFridgeFrameStyle } from './FridgeInterior'
+import { getFridgeUnitTheme } from '@/lib/mainTabs'
 import { IngredientForm } from './IngredientForm'
-import { CompartmentSwipeView } from '@/components/shared/CompartmentSwipeView'
+import { LevelStackInterior } from '@/components/shared/LevelStackInterior'
 import { StoragePageShell } from '@/components/storage/StoragePageShell'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { ColdStorageLocation, FridgeUnitId, Ingredient } from '@/types'
@@ -14,8 +15,9 @@ interface FrenchDoorFridgeViewProps {
 
 export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
   const unit = FRIDGE_UNITS.find((u) => u.id === unitId)!
-  const freezerLoc = unit.compartments[0].location
-  const fridgeLoc = unit.compartments[1].location
+  const compartments = unit.compartments
+  const freezerLoc = compartments[0].location
+  const fridgeLoc = compartments[1].location
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
@@ -34,6 +36,10 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
     } as Record<ColdStorageLocation, Ingredient[]>
   }, [ingredients, freezerLoc, fridgeLoc])
 
+  const activeLocation = compartments[activeCompartment].location
+  const activeIngredients = byLocation[activeLocation]
+  const activeLabel = activeCompartment === 0 ? '냉동' : '냉장'
+
   const handleSubmit = async (data: Parameters<typeof addIngredient>[0]) => {
     if (editing) {
       await updateIngredient(editing.id, data)
@@ -46,35 +52,34 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
   const defaultAddLocation: ColdStorageLocation =
     activeCompartment === 0 ? freezerLoc : fridgeLoc
 
-  const compartments = unit.compartments
-
-  const slides = compartments.map((comp) => ({
-    id: comp.location,
-    label: comp.shortLabel,
-    content: (
-      <FridgeInterior
-        unitId={unitId}
-        location={comp.location}
-        ingredients={byLocation[comp.location]}
-        onIngredientClick={(ing) => {
-          setEditing(ing)
-          setFormOpen(true)
-        }}
-      />
-    ),
-  }))
-
   return (
     <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <StoragePageShell designId={unitId}>
         <div className="flex min-h-0 flex-1 flex-col px-3 pb-2">
-          <CompartmentSwipeView
-            initialIndex={activeCompartment}
-            onIndexChange={setActiveCompartment}
-            slides={slides}
-            frameClassName="rounded-[22px] shadow-md"
-            frameStyle={getFridgeFrameStyle(unitId)}
-          />
+          <div
+            className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] shadow-md"
+            style={getFridgeFrameStyle(unitId)}
+          >
+            <LevelStackInterior
+              ingredients={activeIngredients}
+              onIngredientClick={(ing) => {
+                setEditing(ing)
+                setFormOpen(true)
+              }}
+              theme={getFridgeUnitTheme(unitId)}
+              levelLabel="단"
+              topSelector={{
+                options: [
+                  { value: 0, label: '냉동' },
+                  { value: 1, label: '냉장' },
+                ],
+                value: activeCompartment,
+                onChange: setActiveCompartment,
+              }}
+              emptyMessage={`${activeLabel}이 비어있어요.\n+ 버튼으로 재료를 추가해보세요!`}
+              dividerVariant="metal"
+            />
+          </div>
         </div>
       </StoragePageShell>
 
@@ -85,7 +90,7 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
             setEditing(undefined)
             setFormOpen(true)
           }}
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-lg hover:bg-brand-dark active:scale-95"
+          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-header text-header-text shadow-lg hover:bg-header-dark active:scale-95"
           aria-label="재료 추가"
         >
           <Plus size={28} />

@@ -11,6 +11,20 @@ import {
   usesShelfLevel,
 } from '@/types'
 
+const CUSTOM_UNIT_VALUE = '__custom__'
+
+function resolveUnit(select: string, custom: string) {
+  if (select === CUSTOM_UNIT_VALUE) return custom.trim() || '개'
+  return select
+}
+
+function initUnitState(unit: string) {
+  if ((UNITS as readonly string[]).includes(unit)) {
+    return { select: unit, custom: '' }
+  }
+  return { select: CUSTOM_UNIT_VALUE, custom: unit }
+}
+
 interface IngredientFormProps {
   open: boolean
   onClose: () => void
@@ -39,8 +53,9 @@ export function IngredientForm({
   defaultLocation,
 }: IngredientFormProps) {
   const [name, setName] = useState('')
-  const [quantity, setQuantity] = useState(1)
-  const [unit, setUnit] = useState('개')
+  const [quantityInput, setQuantityInput] = useState('')
+  const [unitSelect, setUnitSelect] = useState<string>('개')
+  const [customUnit, setCustomUnit] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
   const [shelfLevel, setShelfLevel] = useState(0)
   const [imageUrl, setImageUrl] = useState<string | undefined>()
@@ -50,15 +65,18 @@ export function IngredientForm({
   useEffect(() => {
     if (initial) {
       setName(initial.name)
-      setQuantity(initial.quantity)
-      setUnit(initial.unit)
+      setQuantityInput(String(initial.quantity))
+      const unitState = initUnitState(initial.unit)
+      setUnitSelect(unitState.select)
+      setCustomUnit(unitState.custom)
       setExpiryDate(initial.expiryDate ?? '')
       setShelfLevel(initial.shelfLevel ?? 0)
       setImageUrl(initial.imageUrl)
     } else {
       setName('')
-      setQuantity(1)
-      setUnit('개')
+      setQuantityInput('')
+      setUnitSelect('개')
+      setCustomUnit('')
       setExpiryDate('')
       setShelfLevel(0)
       setImageUrl(undefined)
@@ -80,13 +98,21 @@ export function IngredientForm({
   const showShelfLevel = usesShelfLevel(defaultLocation)
   const moveTargets = ALL_STORAGE_LOCATIONS.filter((loc) => loc !== initial?.location)
 
+  const parseQuantity = () => {
+    const trimmed = quantityInput.trim()
+    if (!trimmed || trimmed === '.') return 1
+    const n = Number(trimmed)
+    if (!Number.isFinite(n) || n <= 0) return 1
+    return n
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
     onSubmit({
       name: name.trim(),
-      quantity,
-      unit,
+      quantity: parseQuantity(),
+      unit: resolveUnit(unitSelect, customUnit),
       location: initial?.location ?? defaultLocation,
       expiryDate: expiryDate || undefined,
       shelfLevel: showShelfLevel ? shelfLevel : undefined,
@@ -133,7 +159,7 @@ export function IngredientForm({
               </h3>
               <button
                 type="submit"
-                className="shrink-0 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark active:scale-[0.99]"
+                className="shrink-0 rounded-xl bg-header px-4 py-2 text-sm font-semibold text-header-text hover:bg-header-dark active:scale-[0.99]"
               >
                 {initial ? '수정하기' : '추가하기'}
               </button>
@@ -208,19 +234,32 @@ export function IngredientForm({
                 <div className="flex-1">
                   <label className="mb-1 block text-sm font-medium text-gray-700">수량</label>
                   <input
-                    type="number"
-                    min={0.1}
-                    step={0.1}
-                    value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    type="text"
+                    inputMode="decimal"
+                    value={quantityInput}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/,/g, '.')
+                      if (v === '' || /^\d*\.?\d*$/.test(v)) setQuantityInput(v)
+                    }}
+                    onFocus={(e) => {
+                      if (quantityInput === '0') setQuantityInput('')
+                      e.currentTarget.select()
+                    }}
+                    onBlur={() => {
+                      const trimmed = quantityInput.trim()
+                      if (!trimmed || trimmed === '.' || Number(trimmed) <= 0) {
+                        setQuantityInput(initial ? String(initial.quantity) : '')
+                      }
+                    }}
+                    placeholder="1"
                     className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none"
                   />
                 </div>
                 <div className="flex-1">
                   <label className="mb-1 block text-sm font-medium text-gray-700">단위</label>
                   <select
-                    value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
+                    value={unitSelect}
+                    onChange={(e) => setUnitSelect(e.target.value)}
                     className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none"
                   >
                     {UNITS.map((u) => (
@@ -228,9 +267,24 @@ export function IngredientForm({
                         {u}
                       </option>
                     ))}
+                    <option value={CUSTOM_UNIT_VALUE}>직접 입력</option>
                   </select>
                 </div>
               </div>
+
+              {unitSelect === CUSTOM_UNIT_VALUE && (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">단위 직접 입력</label>
+                  <input
+                    type="text"
+                    value={customUnit}
+                    onChange={(e) => setCustomUnit(e.target.value)}
+                    placeholder="예: 조각, 마리, 봉지"
+                    maxLength={12}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">유통기한 (선택)</label>
