@@ -72,10 +72,9 @@ export function HomePage() {
           {expiring.length > 0 && (
             <div
               data-inner-swipe
-              className="absolute inset-0 z-10 flex items-center justify-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{ paddingLeft: '2%', paddingRight: '2%' }}
+              className="absolute inset-0 z-10 flex items-center overflow-x-auto overscroll-x-contain px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <div className="flex justify-center gap-2.5 px-1">
+              <div className="flex w-max min-w-full gap-2.5 [justify-content:safe_center]">
                 {expiring.map((ing) => (
                   <Link
                     key={ing.id}
