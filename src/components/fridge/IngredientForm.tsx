@@ -163,6 +163,18 @@ export function IngredientForm({
               >
                 {initial ? '수정하기' : '추가하기'}
               </button>
+              {initial && onDelete && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDelete()
+                    onClose()
+                  }}
+                  className="shrink-0 rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 active:scale-[0.99]"
+                >
+                  삭제하기
+                </button>
+              )}
             </div>
             <button
               type="button"
@@ -340,18 +352,6 @@ export function IngredientForm({
                 </div>
               )}
 
-              {initial && onDelete && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onDelete()
-                    onClose()
-                  }}
-                  className="w-full py-2.5 text-sm text-red-500 hover:text-red-600"
-                >
-                  삭제하기
-                </button>
-              )}
             </div>
           </div>
         </form>
