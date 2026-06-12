@@ -3,7 +3,7 @@ import { useIngredients } from '@/hooks/useIngredients'
 import { getExpiringSoon } from '@/lib/recommend'
 import { sortByExpiry } from '@/lib/sortIngredients'
 import { ASSETS } from '@/lib/assets'
-import { getLocationRoute } from '@/lib/navigation'
+import { getIngredientRoute } from '@/lib/navigation'
 import {
   HOME_BANNER_BOTTOM_PINK_FLEX,
   HOME_BANNER_FLEX,
@@ -75,25 +75,25 @@ export function HomePage() {
               className="absolute inset-0 z-10 flex items-center justify-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               style={{ paddingLeft: '2%', paddingRight: '2%' }}
             >
-              <div className="flex justify-center gap-1 px-0.5">
+              <div className="flex justify-center gap-2 px-1">
                 {expiring.map((ing) => (
                   <Link
                     key={ing.id}
-                    to={getLocationRoute(ing.location)}
-                    className="flex max-w-[52px] shrink-0 flex-col rounded-md bg-white/85 px-1 py-0.5 shadow-sm"
+                    to={getIngredientRoute(ing)}
+                    className="flex w-[76px] shrink-0 flex-col rounded-lg bg-white/90 px-1.5 py-1 shadow-sm"
                   >
                     {ing.imageUrl && (
                       <img
                         src={ing.imageUrl}
                         alt=""
-                        className="mb-px h-7 w-full rounded object-cover"
+                        className="mb-0.5 h-10 w-full rounded object-cover"
                       />
                     )}
-                    <span className="truncate text-[8px] font-semibold leading-tight text-gray-800">
+                    <span className="truncate text-[10px] font-semibold leading-tight text-gray-800">
                       {ing.name}
                     </span>
                     {ing.expiryDate && (
-                      <span className="truncate text-[7px] leading-tight text-amber-700">
+                      <span className="truncate text-[9px] leading-tight text-amber-700">
                         {ing.expiryDate}
                       </span>
                     )}

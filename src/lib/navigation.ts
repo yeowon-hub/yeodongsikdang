@@ -1,12 +1,64 @@
 import type { FridgeUnitId, StorageLocation } from '@/types'
-import { STORAGE_META } from '@/types'
+import { isFreezerCompartment, isFridgeCompartment, STORAGE_META } from '@/types'
 
-export function getLocationRoute(location: StorageLocation): string {
+export type LocationRouteOptions = {
+  shelfLevel?: number
+}
+
+export function getLocationRoute(
+  location: StorageLocation,
+  options?: LocationRouteOptions,
+): string {
   const meta = STORAGE_META[location]
-  if (meta.unitId) return `/fridge/${meta.unitId}`
-  if (location === 'shelf') return '/shelf'
-  if (location === 'pantry') return '/pantry'
+  const params = new URLSearchParams()
+
+  if (meta.unitId) {
+    if (isFreezerCompartment(location)) params.set('compartment', 'freezer')
+    else if (isFridgeCompartment(location)) params.set('compartment', 'fridge')
+    if (options?.shelfLevel !== undefined) {
+      params.set('level', String(options.shelfLevel))
+    }
+    const qs = params.toString()
+    return `/fridge/${meta.unitId}${qs ? `?${qs}` : ''}`
+  }
+
+  if (location === 'shelf') {
+    if (options?.shelfLevel !== undefined) {
+      return `/shelf?level=${options.shelfLevel}`
+    }
+    return '/shelf'
+  }
+
+  if (location === 'pantry') {
+    if (options?.shelfLevel !== undefined) {
+      return `/pantry?level=${options.shelfLevel}`
+    }
+    return '/pantry'
+  }
+
   return '/home'
+}
+
+export function getIngredientRoute(ingredient: {
+  location: StorageLocation
+  shelfLevel?: number
+}): string {
+  return getLocationRoute(ingredient.location, { shelfLevel: ingredient.shelfLevel })
+}
+
+export function parseCompartmentIndex(
+  value: string | null,
+): 0 | 1 | null {
+  if (value === 'freezer' || value === '0') return 0
+  if (value === 'fridge' || value === '1') return 1
+  return null
+}
+
+export function parseLevelIndex(value: string | null): number | undefined {
+  if (value === null || value === '') return undefined
+  const n = Number(value)
+  if (!Number.isInteger(n) || n < 0 || n > 6) return undefined
+  return n
 }
 
 export function getFridgeUnitRoute(unitId: FridgeUnitId): string {

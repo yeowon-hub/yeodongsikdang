@@ -43,7 +43,7 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
           src={ingredient.imageUrl}
           alt=""
           className={`w-full shrink-0 object-cover ${
-            mini ? 'mb-0.5 h-8' : compact ? 'mb-0.5 h-6' : 'mb-2 h-24'
+            mini ? 'mb-0.5 h-8' : compact ? 'mb-0.5 h-7' : 'mb-2 h-24'
           }`}
         />
       )}
@@ -62,9 +62,11 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
         {ingredient.quantity}
         {ingredient.unit}
       </span>
-      {ingredient.expiryDate && !mini && !compact && (
+      {ingredient.expiryDate && !mini && (
         <span
-          className={`mt-auto flex w-full items-center gap-0.5 truncate text-[10px] ${
+          className={`mt-auto flex w-full items-center gap-0.5 truncate ${
+            compact ? 'text-[8px]' : 'text-[10px]'
+          } ${
             expiryStatus === 'expired'
               ? 'text-red-600'
               : expiryStatus === 'soon'

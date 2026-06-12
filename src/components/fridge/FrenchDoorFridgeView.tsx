@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { getFridgeFrameStyle } from './FridgeInterior'
 import { getFridgeUnitTheme } from '@/lib/mainTabs'
@@ -8,6 +9,7 @@ import { StoragePageShell } from '@/components/storage/StoragePageShell'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { ColdStorageLocation, FridgeUnitId, Ingredient } from '@/types'
 import { FRIDGE_UNITS } from '@/types'
+import { parseCompartmentIndex, parseLevelIndex } from '@/lib/navigation'
 
 interface FrenchDoorFridgeViewProps {
   unitId: FridgeUnitId
@@ -19,9 +21,18 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
   const freezerLoc = compartments[0].location
   const fridgeLoc = compartments[1].location
 
+  const [searchParams] = useSearchParams()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
-  const [activeCompartment, setActiveCompartment] = useState(0)
+  const [activeCompartment, setActiveCompartment] = useState<number>(() => {
+    return parseCompartmentIndex(searchParams.get('compartment')) ?? 0
+  })
+  const focusLevel = parseLevelIndex(searchParams.get('level'))
+
+  useEffect(() => {
+    const next = parseCompartmentIndex(searchParams.get('compartment'))
+    if (next !== null) setActiveCompartment(next)
+  }, [searchParams, unitId])
 
   const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient } =
     useIngredients()
@@ -76,6 +87,7 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
                 value: activeCompartment,
                 onChange: setActiveCompartment,
               }}
+              focusLevel={focusLevel}
               emptyMessage={`${activeLabel}이 비어있어요.\n+ 버튼으로 재료를 추가해보세요!`}
               dividerVariant="metal"
             />

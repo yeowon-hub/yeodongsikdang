@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { Ingredient } from '@/types'
 import { SHELF_LEVELS } from '@/types'
 import { IngredientCard } from '@/components/fridge/IngredientCard'
@@ -20,11 +21,12 @@ interface LevelStackInteriorProps {
   theme: LevelStackTheme
   levelLabel: '칸' | '단'
   topSelector?: LevelStackTopSelector
+  focusLevel?: number
   emptyMessage?: string
   dividerVariant?: 'metal' | 'wood'
 }
 
-const ROW_HEIGHT_PX = 62
+const ROW_HEIGHT_PX = 70
 
 export function LevelStackInterior({
   ingredients,
@@ -32,9 +34,17 @@ export function LevelStackInterior({
   theme,
   levelLabel,
   topSelector,
+  focusLevel,
   emptyMessage,
   dividerVariant = 'metal',
 }: LevelStackInteriorProps) {
+  const levelRefs = useRef<Map<number, HTMLDivElement>>(new Map())
+
+  useEffect(() => {
+    if (focusLevel === undefined) return
+    levelRefs.current.get(focusLevel)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [focusLevel, ingredients])
+
   const grouped = SHELF_LEVELS.map((level) => ({
     level,
     items: sortByExpiry(ingredients.filter((i) => (i.shelfLevel ?? 0) === level)),
@@ -72,6 +82,10 @@ export function LevelStackInterior({
         {grouped.map(({ level, items }) => (
           <div
             key={level}
+            ref={(el) => {
+              if (el) levelRefs.current.set(level, el)
+              else levelRefs.current.delete(level)
+            }}
             className="flex shrink-0 flex-col border-b border-black/5 last:border-b-0"
           >
             <div className="shrink-0 px-2.5 pt-1.5">

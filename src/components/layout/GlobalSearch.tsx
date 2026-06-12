@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Search, X } from 'lucide-react'
 import { useIngredients } from '@/hooks/useIngredients'
 import { useRecipes } from '@/hooks/useRecipes'
-import { getLocationRoute, getRecipeRoute } from '@/lib/navigation'
+import { getIngredientRoute, getRecipeRoute } from '@/lib/navigation'
 import { STORAGE_META } from '@/types'
 
 function normalizeQuery(q: string) {
@@ -35,7 +35,7 @@ export function GlobalSearch({ overlay = false }: GlobalSearchProps) {
         id: i.id,
         title: i.name,
         subtitle: STORAGE_META[i.location].label,
-        route: getLocationRoute(i.location),
+        route: getIngredientRoute(i),
       }))
 
     const recipeHits = (recipes ?? [])
