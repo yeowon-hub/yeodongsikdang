@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useIngredients } from '@/hooks/useIngredients'
-import { formatExpiryDisplay, getExpiringSoon } from '@/lib/recommend'
+import { IngredientCard } from '@/components/fridge/IngredientCard'
+import { getExpiringSoon } from '@/lib/recommend'
 import { sortByExpiry } from '@/lib/sortIngredients'
 import { ASSETS } from '@/lib/assets'
 import { getIngredientRoute } from '@/lib/navigation'
@@ -76,26 +77,8 @@ export function HomePage() {
             >
               <div className="flex w-max min-w-full gap-2.5 [justify-content:safe_center]">
                 {expiring.map((ing) => (
-                  <Link
-                    key={ing.id}
-                    to={getIngredientRoute(ing)}
-                    className="flex w-[92px] shrink-0 flex-col rounded-lg bg-white/92 px-2 py-1.5 shadow-sm"
-                  >
-                    {ing.imageUrl && (
-                      <img
-                        src={ing.imageUrl}
-                        alt=""
-                        className="mb-1 h-12 w-full rounded-md object-cover"
-                      />
-                    )}
-                    <span className="truncate text-[11px] font-semibold leading-tight text-gray-800">
-                      {ing.name}
-                    </span>
-                    {ing.expiryDate && (
-                      <span className="truncate text-[10px] leading-tight text-amber-700">
-                        {formatExpiryDisplay(ing.expiryDate)}
-                      </span>
-                    )}
+                  <Link key={ing.id} to={getIngredientRoute(ing)} className="shrink-0 active:opacity-90">
+                    <IngredientCard ingredient={ing} banner asDiv />
                   </Link>
                 ))}
               </div>
