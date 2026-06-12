@@ -11,17 +11,19 @@
 
 @theme {
   --font-sans: "Cafe24Surround", "카페24 서라운드", sans-serif;
-  --color-fridge: #E8F4FC;
-  --color-fridge-dark: #B8D4E8;
-  --color-shelf: #F5E6D3;
-  --color-shelf-dark: #D4B896;
-  --color-pantry: #EDE7F6;
-  --color-pantry-dark: #B39DDB;
+  --color-fridge: #E3ECFF;
+  --color-fridge-dark: #B8C8E8;
+  --color-kimchi: #FBFCCE;
+  --color-kimchi-dark: #D8D9A8;
+  --color-shelf: #E4D4C4;
+  --color-shelf-dark: #C9B5A8;
+  --color-pantry: #CCB7AC;
+  --color-pantry-dark: #A89488;
   --color-freezer: #E0F0FF;
   --color-freezer-dark: #9BB8D4;
   --color-brand: #FF6B6B;
   --color-brand-dark: #E85555;
-  --color-header: #F4B183;
+  --color-header: #FFB88E;
   --color-header-text: #4A3728;
   --color-tile-fridge: #D6E4F5;
   --color-tile-kimchi: #F5E6A8;
@@ -39,6 +41,7 @@
 
 html, body, #root {
   height: 100%;
+  min-height: 100dvh;
   margin: 0;
 }
 

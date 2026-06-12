@@ -3,14 +3,10 @@ import { Plus } from 'lucide-react'
 import { FridgeInterior, getFridgeFrameStyle } from './FridgeInterior'
 import { IngredientForm } from './IngredientForm'
 import { CompartmentSwipeView } from '@/components/shared/CompartmentSwipeView'
+import { StoragePageShell } from '@/components/storage/StoragePageShell'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { ColdStorageLocation, FridgeUnitId, Ingredient } from '@/types'
-import { FRIDGE_UNITS, STORAGE_META } from '@/types'
-
-const PAGE_BG: Record<FridgeUnitId, string> = {
-  general: 'bg-fridge',
-  kimchi: 'bg-gradient-to-b from-amber-50/90 to-orange-50/50',
-}
+import { FRIDGE_UNITS } from '@/types'
 
 interface FrenchDoorFridgeViewProps {
   unitId: FridgeUnitId
@@ -50,16 +46,14 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
   const defaultAddLocation: ColdStorageLocation =
     activeCompartment === 0 ? freezerLoc : fridgeLoc
 
-  const compartments = unit.compartments.map((comp) => ({
-    ...comp,
-    kind: STORAGE_META[comp.location].kind as 'fridge' | 'freezer',
-  }))
+  const compartments = unit.compartments
 
   const slides = compartments.map((comp) => ({
     id: comp.location,
     label: comp.shortLabel,
     content: (
       <FridgeInterior
+        unitId={unitId}
         location={comp.location}
         ingredients={byLocation[comp.location]}
         onIngredientClick={(ing) => {
@@ -70,23 +64,19 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
     ),
   }))
 
-  const activeKind = compartments[activeCompartment]?.kind ?? 'fridge'
-
   return (
-    <div className={`relative flex min-h-0 flex-1 flex-col overflow-hidden ${PAGE_BG[unitId]}`}>
-      <div className="shrink-0 px-4 pb-2 pt-2">
-        <h2 className="text-base font-bold text-gray-800">{unit.label}</h2>
-        <p className="text-[11px] text-gray-500">좌우로 밀어 냉동실·냉장실을 바꿔요</p>
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col px-3 pb-2">
-        <CompartmentSwipeView
-          initialIndex={activeCompartment}
-          onIndexChange={setActiveCompartment}
-          slides={slides}
-          frameStyle={getFridgeFrameStyle(activeKind)}
-        />
-      </div>
+    <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <StoragePageShell designId={unitId}>
+        <div className="flex min-h-0 flex-1 flex-col px-3 pb-2">
+          <CompartmentSwipeView
+            initialIndex={activeCompartment}
+            onIndexChange={setActiveCompartment}
+            slides={slides}
+            frameClassName="rounded-[22px] shadow-md"
+            frameStyle={getFridgeFrameStyle(unitId)}
+          />
+        </div>
+      </StoragePageShell>
 
       {!formOpen && (
         <button

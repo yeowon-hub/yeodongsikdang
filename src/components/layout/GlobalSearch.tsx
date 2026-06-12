@@ -10,7 +10,12 @@ function normalizeQuery(q: string) {
   return q.trim().toLowerCase()
 }
 
-export function GlobalSearch() {
+interface GlobalSearchProps {
+  /** PDF 헤더 검색창 위에 투명 오버레이 */
+  overlay?: boolean
+}
+
+export function GlobalSearch({ overlay = false }: GlobalSearchProps) {
   const navigate = useNavigate()
   const { ingredients } = useIngredients()
   const { recipes } = useRecipes()
@@ -56,9 +61,15 @@ export function GlobalSearch() {
   }
 
   return (
-    <div className="relative min-w-0 flex-1">
-      <div className="flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-white/80">
-        <Search size={16} className="shrink-0 text-gray-400" />
+    <div className={overlay ? 'relative h-full w-full' : 'relative min-w-0 flex-1'}>
+      <div
+        className={
+          overlay
+            ? 'flex h-full items-center px-2.5'
+            : 'flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-white/80'
+        }
+      >
+        {!overlay && <Search size={16} className="shrink-0 text-gray-400" />}
         <input
           type="search"
           value={query}
@@ -70,8 +81,12 @@ export function GlobalSearch() {
           onBlur={() => {
             blurTimer.current = setTimeout(() => setOpen(false), 150)
           }}
-          placeholder="재료·레시피 검색"
-          className="min-w-0 flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
+          placeholder={overlay ? '' : '재료·레시피 검색'}
+          className={
+            overlay
+              ? 'min-w-0 flex-1 bg-transparent text-xs text-gray-700 focus:outline-none'
+              : 'min-w-0 flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none'
+          }
           aria-label="재료·레시피 검색"
           enterKeyHint="search"
         />

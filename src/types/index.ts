@@ -163,7 +163,15 @@ export const UNITS = ['개', 'g', 'kg', 'ml', 'L', '컵', '큰술', '작은술',
 
 export const CATEGORIES = ['찌개·국', '볶음', '밥·면', '반찬', '간식', '샐러드', '기타'] as const
 
-export const SHELF_LEVELS = [0, 1, 2, 3] as const
+export const SHELF_LEVEL_COUNT = 7
+
+export const SHELF_LEVELS = [0, 1, 2, 3, 4, 5, 6] as const
+
+/** compact 재료 카드 고정 크기(px) — 글씨가 커져도 칸 크기 유지 */
+export const INGREDIENT_CARD_SIZE = {
+  compactWidth: 76,
+  compactHeight: 84,
+} as const
 
 export type HouseholdRole = 'owner' | 'member'
 

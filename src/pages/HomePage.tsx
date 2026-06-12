@@ -1,111 +1,144 @@
 import { Link } from 'react-router-dom'
-import { Clock } from 'lucide-react'
 import { useIngredients } from '@/hooks/useIngredients'
-import { getExpiringSoon, getExpiryStatus } from '@/lib/recommend'
+import { getExpiringSoon } from '@/lib/recommend'
 import { sortByExpiry } from '@/lib/sortIngredients'
 import { ASSETS } from '@/lib/assets'
 import { getLocationRoute } from '@/lib/navigation'
+import {
+  HOME_BANNER_BOTTOM_PINK_FLEX,
+  HOME_BANNER_FLEX,
+  HOME_BANNER_RADIUS,
+  HOME_BANNER_SHADOW_FLEX,
+  HOME_BANNER_SHADOW_GRADIENT,
+  HOME_BANNER_TOP_FLEX,
+  HOME_EXPIRING_INSET,
+  HOME_GAP_FLEX,
+  HOME_HOTSPOTS,
+  HOME_TILE_FLEX,
+  homeRectStyle,
+} from '@/lib/homeDesignSpec'
 
-const NAV_TILES = [
-  { id: 'fridge', route: '/fridge/general', image: ASSETS.tiles.fridge, alt: '일반 냉장고' },
-  { id: 'kimchi', route: '/fridge/kimchi', image: ASSETS.tiles.kimchi, alt: '김치냉장고' },
-  { id: 'shelf', route: '/shelf', image: ASSETS.tiles.shelf, alt: '선반' },
-  { id: 'pantry', route: '/pantry', image: ASSETS.tiles.pantry, alt: '펜트리' },
+const NAV_HOTSPOTS = [
+  { id: 'fridge', route: '/fridge/general', rect: HOME_HOTSPOTS.fridge, label: '일반 냉장고' },
+  { id: 'kimchi', route: '/fridge/kimchi', rect: HOME_HOTSPOTS.kimchi, label: '김치냉장고' },
+  { id: 'shelf', route: '/shelf', rect: HOME_HOTSPOTS.shelf, label: '선반' },
+  { id: 'pantry', route: '/pantry', rect: HOME_HOTSPOTS.pantry, label: '펜트리' },
 ] as const
+
+const bannerInsetStyle = {
+  width: `${HOME_EXPIRING_INSET.width}%`,
+  marginLeft: 'auto',
+  marginRight: 'auto',
+} as const
+
+const pinkBlockFlex = HOME_BANNER_TOP_FLEX + HOME_BANNER_BOTTOM_PINK_FLEX
 
 export function HomePage() {
   const { ingredients } = useIngredients()
   const expiring = sortByExpiry(getExpiringSoon(ingredients, 3))
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+    <div className="flex h-full w-full flex-col bg-white">
       <div
-        className="relative mx-4 mt-3 shrink-0 overflow-hidden rounded-[28px] bg-cover bg-center shadow-md"
-        style={{ backgroundImage: `url(${ASSETS.expiringBanner})` }}
+        className="relative flex w-full shrink-0 flex-col overflow-hidden"
+        style={{
+          ...bannerInsetStyle,
+          flex: `${HOME_BANNER_FLEX} 0 0`,
+          borderRadius: HOME_BANNER_RADIUS,
+        }}
       >
-        <div className="min-h-[88px] px-4 py-3">
-          {expiring.length > 0 ? (
-            <>
-              <p className="mb-2 text-[11px] font-semibold text-gray-700/80">유통기한 임박</p>
-              <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {expiring.map((ing) => {
-                  const status = getExpiryStatus(ing.expiryDate)
-                  return (
-                    <Link
-                      key={ing.id}
-                      to={getLocationRoute(ing.location)}
-                      className="shrink-0"
-                    >
-                      <div
-                        className={`flex w-[88px] flex-col rounded-2xl border bg-white/90 p-1.5 shadow-sm backdrop-blur-sm ${
-                          status === 'expired'
-                            ? 'border-red-200'
-                            : status === 'soon'
-                              ? 'border-amber-200'
-                              : 'border-white/80'
-                        }`}
-                      >
-                        {ing.imageUrl ? (
-                          <img
-                            src={ing.imageUrl}
-                            alt=""
-                            className="mb-1 h-11 w-full rounded-xl object-cover"
-                          />
-                        ) : (
-                          <div className="mb-1 flex h-11 items-center justify-center rounded-xl bg-white/60 text-lg">
-                            🥬
-                          </div>
-                        )}
-                        <span className="truncate text-[10px] font-semibold text-gray-800">
-                          {ing.name}
-                        </span>
-                        <span className="mt-0.5 flex items-center gap-0.5 text-[9px] text-amber-700">
-                          <Clock size={9} />
-                          {ing.expiryDate}
-                        </span>
-                      </div>
-                    </Link>
-                  )
-                })}
-              </div>
-            </>
-          ) : (
-            <p className="flex min-h-[64px] items-center justify-center text-center text-xs text-gray-600/70">
-              임박한 재료가 없어요
-            </p>
-          )}
-        </div>
-      </div>
-
-      <section className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3 px-4 py-3">
-        {NAV_TILES.map((tile) => (
-          <Link
-            key={tile.id}
-            to={tile.route}
-            className="block min-h-0 overflow-hidden rounded-[28px] shadow-md transition-transform active:scale-[0.98]"
-          >
+        <div className="relative flex w-full shrink-0 flex-col" style={{ flex: `${pinkBlockFlex} 0 0` }}>
+          <div className="relative w-full shrink-0" style={{ flex: `${HOME_BANNER_TOP_FLEX} 0 0` }}>
             <img
-              src={tile.image}
-              alt={tile.alt}
-              className="h-full w-full object-cover"
+              src={ASSETS.expiringBannerTop}
+              alt=""
+              className="absolute inset-0 h-full w-full object-fill"
               draggable={false}
             />
-          </Link>
-        ))}
-      </section>
+          </div>
 
-      <div className="shrink-0 px-4 pb-4">
+          <div
+            className="relative w-full shrink-0"
+            style={{ flex: `${HOME_BANNER_BOTTOM_PINK_FLEX} 0 0` }}
+          >
+            <img
+              src={ASSETS.expiringBannerBottom}
+              alt=""
+              className="absolute inset-0 h-full w-full object-fill"
+              draggable={false}
+            />
+          </div>
+
+          {expiring.length > 0 && (
+            <div
+              data-inner-swipe
+              className="absolute inset-0 z-10 flex items-center justify-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              style={{ paddingLeft: '2%', paddingRight: '2%' }}
+            >
+              <div className="flex justify-center gap-1 px-0.5">
+                {expiring.map((ing) => (
+                  <Link
+                    key={ing.id}
+                    to={getLocationRoute(ing.location)}
+                    className="flex max-w-[52px] shrink-0 flex-col rounded-md bg-white/85 px-1 py-0.5 shadow-sm"
+                  >
+                    {ing.imageUrl && (
+                      <img
+                        src={ing.imageUrl}
+                        alt=""
+                        className="mb-px h-7 w-full rounded object-cover"
+                      />
+                    )}
+                    <span className="truncate text-[8px] font-semibold leading-tight text-gray-800">
+                      {ing.name}
+                    </span>
+                    {ing.expiryDate && (
+                      <span className="truncate text-[7px] leading-tight text-amber-700">
+                        {ing.expiryDate}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div
+          className="shrink-0"
+          style={{
+            flex: `${HOME_BANNER_SHADOW_FLEX} 0 0`,
+            background: HOME_BANNER_SHADOW_GRADIENT,
+          }}
+        />
+      </div>
+
+      <div className="shrink-0 bg-white" style={{ flex: `${HOME_GAP_FLEX} 0 0` }} />
+
+      <div className="relative min-h-0" style={{ flex: `${HOME_TILE_FLEX} 0 0` }}>
+        <img
+          src={ASSETS.homeBody}
+          alt=""
+          className="absolute inset-0 h-full w-full"
+          draggable={false}
+        />
+
+        {NAV_HOTSPOTS.map((spot) => (
+          <Link
+            key={spot.id}
+            to={spot.route}
+            aria-label={spot.label}
+            className="absolute z-10 active:opacity-80"
+            style={homeRectStyle(spot.rect)}
+          />
+        ))}
+
         <Link
           to="/recipes"
-          className="block overflow-hidden rounded-[28px] shadow-md transition-transform active:scale-[0.98]"
-        >
-          <img
-            src={ASSETS.tiles.recipe}
-            alt="레시피"
-            className="h-auto w-full object-cover"
-            draggable={false}
-          />
-        </Link>
+          aria-label="레시피"
+          className="absolute z-10 active:opacity-80"
+          style={homeRectStyle(HOME_HOTSPOTS.recipe)}
+        />
       </div>
     </div>
   )

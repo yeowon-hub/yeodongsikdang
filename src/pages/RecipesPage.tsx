@@ -34,15 +34,18 @@ export function RecipesPage() {
   ]
 
   return (
-    <div className="px-4 py-4 pb-24">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[#D8F2EE] px-4 py-4 pb-24">
+      <h2 className="mb-3 text-base font-bold text-gray-800">레시피</h2>
       <div className="mb-4 flex gap-2">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-              tab === t.id ? 'bg-brand text-white' : 'bg-white text-gray-600 shadow-sm'
+            className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-colors ${
+              tab === t.id
+                ? 'bg-white text-gray-800'
+                : 'bg-white/60 text-gray-600'
             }`}
           >
             {t.label}

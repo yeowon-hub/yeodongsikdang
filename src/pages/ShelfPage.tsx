@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { ShelfView } from '@/components/shelf/ShelfView'
 import { IngredientForm } from '@/components/fridge/IngredientForm'
+import { DryStorageView } from '@/components/storage/DryStorageView'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { Ingredient } from '@/types'
 
@@ -21,13 +21,15 @@ export function ShelfPage() {
   }
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <ShelfView
+    <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <DryStorageView
+        designId="shelf"
         ingredients={ingredients}
         onIngredientClick={(ing) => {
           setEditing(ing)
           setFormOpen(true)
         }}
+        emptyMessage={'선반이 비어있어요.\n+ 버튼으로 재료를 추가해보세요!'}
       />
 
       {!formOpen && (

@@ -5,6 +5,7 @@ import type { Ingredient, StorageLocation } from '@/types'
 import {
   ALL_STORAGE_LOCATIONS,
   SHELF_LEVELS,
+  SHELF_LEVEL_COUNT,
   STORAGE_META,
   UNITS,
   usesShelfLevel,
@@ -259,7 +260,7 @@ export function IngredientForm({
                       <option key={level} value={level}>
                         {level + 1}
                         {defaultLocation === 'shelf' || defaultLocation === 'pantry' ? '칸' : '단'}
-                        {level === 0 ? ' (최상)' : level === 3 ? ' (최하)' : ''}
+                        {level === 0 ? ' (최상)' : level === SHELF_LEVEL_COUNT - 1 ? ' (최하)' : ''}
                       </option>
                     ))}
                   </select>

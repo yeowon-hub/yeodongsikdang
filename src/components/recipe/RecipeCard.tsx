@@ -12,7 +12,7 @@ export function RecipeCard({ recipe, matchScore, missingCount }: RecipeCardProps
   return (
     <Link
       to={`/recipes/${recipe.id}`}
-      className="block rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
+      className="block rounded-[22px] border border-white/80 bg-white p-4 shadow-md transition-all hover:shadow-lg active:scale-[0.99]"
     >
       <p className="flex items-start justify-between gap-2">
         <span className="font-semibold text-gray-800">{recipe.title}</span>

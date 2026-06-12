@@ -1,5 +1,6 @@
 import { getExpiryStatus } from '@/lib/recommend'
 import type { Ingredient } from '@/types'
+import { INGREDIENT_CARD_SIZE } from '@/types'
 import { AlertTriangle, Clock } from 'lucide-react'
 
 interface IngredientCardProps {
@@ -9,6 +10,8 @@ interface IngredientCardProps {
   mini?: boolean
 }
 
+const { compactWidth, compactHeight } = INGREDIENT_CARD_SIZE
+
 export function IngredientCard({ ingredient, onClick, compact, mini }: IngredientCardProps) {
   const expiryStatus = getExpiryStatus(ingredient.expiryDate)
 
@@ -16,7 +19,12 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex shrink-0 flex-col items-stretch overflow-hidden rounded-xl border bg-white text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
+      style={
+        compact
+          ? { width: compactWidth, height: compactHeight, minWidth: compactWidth, maxWidth: compactWidth }
+          : undefined
+      }
+      className={`group relative flex shrink-0 grow-0 flex-col items-stretch overflow-hidden rounded-xl border bg-white text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
         expiryStatus === 'expired'
           ? 'border-red-300 bg-red-50'
           : expiryStatus === 'soon'
@@ -26,7 +34,7 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
         mini
           ? 'min-w-[56px] max-w-[64px] p-1'
           : compact
-            ? 'min-w-[88px] max-w-[calc(50%-0.25rem)] p-2'
+            ? 'box-border p-1.5'
             : 'w-full p-3'
       }`}
     >
@@ -34,25 +42,31 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
         <img
           src={ingredient.imageUrl}
           alt=""
-          className={`w-full object-cover ${
-            mini ? 'mb-0.5 h-8' : compact ? 'mb-1 h-14' : 'mb-2 h-24'
+          className={`w-full shrink-0 object-cover ${
+            mini ? 'mb-0.5 h-8' : compact ? 'mb-0.5 h-9' : 'mb-2 h-24'
           }`}
         />
       )}
       <span
-        className={`truncate font-medium text-gray-800 ${mini ? 'w-full px-0.5 text-[10px] leading-tight' : compact ? 'px-0.5' : ''}`}
+        className={`block w-full truncate font-medium text-gray-800 ${
+          mini ? 'px-0.5 text-[10px] leading-tight' : compact ? 'text-[11px] leading-tight' : ''
+        }`}
       >
         {ingredient.name}
       </span>
       <span
-        className={`text-gray-500 ${mini ? 'px-0.5 text-[9px] leading-tight' : compact ? 'px-0.5' : ''} ${mini ? '' : 'mt-0.5 text-xs'}`}
+        className={`block w-full truncate text-gray-500 ${
+          mini ? 'px-0.5 text-[9px] leading-tight' : compact ? 'text-[10px] leading-tight' : 'mt-0.5 text-xs'
+        }`}
       >
         {ingredient.quantity}
         {ingredient.unit}
       </span>
       {ingredient.expiryDate && !mini && (
         <span
-          className={`mt-1 flex items-center gap-0.5 text-[10px] ${
+          className={`mt-auto flex w-full items-center gap-0.5 truncate ${
+            compact ? 'text-[9px]' : 'text-[10px]'
+          } ${
             expiryStatus === 'expired'
               ? 'text-red-600'
               : expiryStatus === 'soon'
@@ -61,11 +75,11 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
           }`}
         >
           {expiryStatus === 'expired' ? (
-            <AlertTriangle size={10} />
+            <AlertTriangle size={compact ? 8 : 10} className="shrink-0" />
           ) : expiryStatus === 'soon' ? (
-            <Clock size={10} />
+            <Clock size={compact ? 8 : 10} className="shrink-0" />
           ) : null}
-          {ingredient.expiryDate}
+          <span className="truncate">{ingredient.expiryDate}</span>
         </span>
       )}
     </button>
