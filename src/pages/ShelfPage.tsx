@@ -10,6 +10,7 @@ import type { Ingredient } from '@/types'
 export function ShelfPage() {
   const [searchParams] = useSearchParams()
   const focusLevel = parseLevelIndex(searchParams.get('level'))
+  const focusIngredientId = searchParams.get('ingredient') ?? undefined
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
   const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient } =
@@ -34,6 +35,7 @@ export function ShelfPage() {
           setFormOpen(true)
         }}
         focusLevel={focusLevel}
+        focusIngredientId={focusIngredientId}
         emptyMessage={'선반이 비어있어요.\n+ 버튼으로 재료를 추가해보세요!'}
       />
 

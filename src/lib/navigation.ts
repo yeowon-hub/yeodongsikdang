@@ -3,6 +3,7 @@ import { isFreezerCompartment, isFridgeCompartment, STORAGE_META } from '@/types
 
 export type LocationRouteOptions = {
   shelfLevel?: number
+  ingredientId?: string
 }
 
 export function getLocationRoute(
@@ -18,32 +19,39 @@ export function getLocationRoute(
     if (options?.shelfLevel !== undefined) {
       params.set('level', String(options.shelfLevel))
     }
+    if (options?.ingredientId) params.set('ingredient', options.ingredientId)
     const qs = params.toString()
     return `/fridge/${meta.unitId}${qs ? `?${qs}` : ''}`
   }
 
   if (location === 'shelf') {
-    if (options?.shelfLevel !== undefined) {
-      return `/shelf?level=${options.shelfLevel}`
-    }
-    return '/shelf'
+    const params = new URLSearchParams()
+    if (options?.shelfLevel !== undefined) params.set('level', String(options.shelfLevel))
+    if (options?.ingredientId) params.set('ingredient', options.ingredientId)
+    const qs = params.toString()
+    return qs ? `/shelf?${qs}` : '/shelf'
   }
 
   if (location === 'pantry') {
-    if (options?.shelfLevel !== undefined) {
-      return `/pantry?level=${options.shelfLevel}`
-    }
-    return '/pantry'
+    const params = new URLSearchParams()
+    if (options?.shelfLevel !== undefined) params.set('level', String(options.shelfLevel))
+    if (options?.ingredientId) params.set('ingredient', options.ingredientId)
+    const qs = params.toString()
+    return qs ? `/pantry?${qs}` : '/pantry'
   }
 
   return '/home'
 }
 
 export function getIngredientRoute(ingredient: {
+  id: string
   location: StorageLocation
   shelfLevel?: number
 }): string {
-  return getLocationRoute(ingredient.location, { shelfLevel: ingredient.shelfLevel })
+  return getLocationRoute(ingredient.location, {
+    shelfLevel: ingredient.shelfLevel,
+    ingredientId: ingredient.id,
+  })
 }
 
 export function parseCompartmentIndex(

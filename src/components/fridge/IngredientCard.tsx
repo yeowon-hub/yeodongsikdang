@@ -1,4 +1,4 @@
-import { getExpiryStatus } from '@/lib/recommend'
+import { formatExpiryDisplay, getExpiryStatus } from '@/lib/recommend'
 import type { Ingredient } from '@/types'
 import { INGREDIENT_CARD_SIZE } from '@/types'
 import { AlertTriangle, Clock } from 'lucide-react'
@@ -8,11 +8,12 @@ interface IngredientCardProps {
   onClick?: () => void
   compact?: boolean
   mini?: boolean
+  highlighted?: boolean
 }
 
 const { compactWidth, compactHeight } = INGREDIENT_CARD_SIZE
 
-export function IngredientCard({ ingredient, onClick, compact, mini }: IngredientCardProps) {
+export function IngredientCard({ ingredient, onClick, compact, mini, highlighted }: IngredientCardProps) {
   const expiryStatus = getExpiryStatus(ingredient.expiryDate)
 
   return (
@@ -25,11 +26,13 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
           : undefined
       }
       className={`group relative flex shrink-0 grow-0 flex-col items-stretch overflow-hidden rounded-xl border bg-white text-left shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${
-        expiryStatus === 'expired'
-          ? 'border-red-300 bg-red-50'
-          : expiryStatus === 'soon'
-            ? 'border-amber-300 bg-amber-50'
-            : 'border-gray-100'
+        highlighted
+          ? 'z-10 border-header ring-2 ring-header ring-offset-1'
+          : expiryStatus === 'expired'
+            ? 'border-red-300 bg-red-50'
+            : expiryStatus === 'soon'
+              ? 'border-amber-300 bg-amber-50'
+              : 'border-gray-100'
       } ${
         mini
           ? 'min-w-[56px] max-w-[64px] p-1'
@@ -79,7 +82,7 @@ export function IngredientCard({ ingredient, onClick, compact, mini }: Ingredien
           ) : expiryStatus === 'soon' ? (
             <Clock size={compact ? 8 : 10} className="shrink-0" />
           ) : null}
-          <span className="truncate">{ingredient.expiryDate}</span>
+          <span className="truncate">{formatExpiryDisplay(ingredient.expiryDate)}</span>
         </span>
       )}
     </button>

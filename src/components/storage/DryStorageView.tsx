@@ -13,6 +13,7 @@ interface DryStorageViewProps {
   ingredients: Ingredient[]
   onIngredientClick: (ingredient: Ingredient) => void
   focusLevel?: number
+  focusIngredientId?: string
   emptyMessage: string
 }
 
@@ -21,6 +22,7 @@ export function DryStorageView({
   ingredients,
   onIngredientClick,
   focusLevel,
+  focusIngredientId,
   emptyMessage,
 }: DryStorageViewProps) {
   const design = getStorageDesign(designId)
@@ -39,6 +41,7 @@ export function DryStorageView({
             theme={theme}
             levelLabel="칸"
             focusLevel={focusLevel}
+            focusIngredientId={focusIngredientId}
             emptyMessage={emptyMessage}
             dividerVariant="wood"
           />

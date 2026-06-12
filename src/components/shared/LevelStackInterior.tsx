@@ -22,6 +22,7 @@ interface LevelStackInteriorProps {
   levelLabel: '칸' | '단'
   topSelector?: LevelStackTopSelector
   focusLevel?: number
+  focusIngredientId?: string
   emptyMessage?: string
   dividerVariant?: 'metal' | 'wood'
 }
@@ -35,15 +36,35 @@ export function LevelStackInterior({
   levelLabel,
   topSelector,
   focusLevel,
+  focusIngredientId,
   emptyMessage,
   dividerVariant = 'metal',
 }: LevelStackInteriorProps) {
   const levelRefs = useRef<Map<number, HTMLDivElement>>(new Map())
+  const ingredientRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   useEffect(() => {
-    if (focusLevel === undefined) return
-    levelRefs.current.get(focusLevel)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  }, [focusLevel, ingredients])
+    if (focusIngredientId === undefined && focusLevel === undefined) return
+
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (focusIngredientId) {
+          const card = ingredientRefs.current.get(focusIngredientId)
+          const level = card?.closest('[data-shelf-level]') as HTMLElement | null
+          level?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+          card?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+          return
+        }
+        if (focusLevel !== undefined) {
+          levelRefs.current
+            .get(focusLevel)
+            ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        }
+      })
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [focusIngredientId, focusLevel, ingredients])
 
   const grouped = SHELF_LEVELS.map((level) => ({
     level,
@@ -82,6 +103,7 @@ export function LevelStackInterior({
         {grouped.map(({ level, items }) => (
           <div
             key={level}
+            data-shelf-level={level}
             ref={(el) => {
               if (el) levelRefs.current.set(level, el)
               else levelRefs.current.delete(level)
@@ -104,12 +126,21 @@ export function LevelStackInterior({
               ) : (
                 <div className="flex h-full flex-nowrap items-center gap-1.5">
                   {items.map((item) => (
-                    <IngredientCard
+                    <div
                       key={item.id}
-                      ingredient={item}
-                      onClick={() => onIngredientClick(item)}
-                      compact
-                    />
+                      ref={(el) => {
+                        if (el) ingredientRefs.current.set(item.id, el)
+                        else ingredientRefs.current.delete(item.id)
+                      }}
+                      className="shrink-0"
+                    >
+                      <IngredientCard
+                        ingredient={item}
+                        onClick={() => onIngredientClick(item)}
+                        compact
+                        highlighted={focusIngredientId === item.id}
+                      />
+                    </div>
                   ))}
                 </div>
               )}

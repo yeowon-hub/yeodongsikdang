@@ -28,14 +28,24 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
     return parseCompartmentIndex(searchParams.get('compartment')) ?? 0
   })
   const focusLevel = parseLevelIndex(searchParams.get('level'))
-
-  useEffect(() => {
-    const next = parseCompartmentIndex(searchParams.get('compartment'))
-    if (next !== null) setActiveCompartment(next)
-  }, [searchParams, unitId])
+  const focusIngredientId = searchParams.get('ingredient') ?? undefined
 
   const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient } =
     useIngredients()
+
+  useEffect(() => {
+    const fromParam = parseCompartmentIndex(searchParams.get('compartment'))
+    if (fromParam !== null) {
+      setActiveCompartment(fromParam)
+      return
+    }
+
+    if (!focusIngredientId) return
+    const target = ingredients.find((i) => i.id === focusIngredientId)
+    if (!target) return
+    const idx = compartments.findIndex((c) => c.location === target.location)
+    if (idx >= 0) setActiveCompartment(idx)
+  }, [searchParams, unitId, focusIngredientId, ingredients, compartments])
 
   const byLocation = useMemo(() => {
     const items = ingredients.filter(
@@ -88,6 +98,7 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
                 onChange: setActiveCompartment,
               }}
               focusLevel={focusLevel}
+              focusIngredientId={focusIngredientId}
               emptyMessage={`${activeLabel}이 비어있어요.\n+ 버튼으로 재료를 추가해보세요!`}
               dividerVariant="metal"
             />
