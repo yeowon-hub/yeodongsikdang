@@ -16,28 +16,38 @@ export function RecipeDetailPage() {
   useSuppressGlobalAddFab(editOpen)
 
   if (recipe === undefined) {
-    return <p className="py-8 text-center text-sm text-gray-500">불러오는 중...</p>
+    return (
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[#D8F2EE]">
+        <p className="py-8 text-center text-sm text-gray-500">불러오는 중...</p>
+      </div>
+    )
   }
 
   if (!recipe) {
-    return <p className="py-8 text-center text-sm text-gray-500">레시피를 찾을 수 없습니다.</p>
+    return (
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[#D8F2EE]">
+        <p className="py-8 text-center text-sm text-gray-500">레시피를 찾을 수 없습니다.</p>
+      </div>
+    )
   }
 
   return (
     <>
-      <RecipeDetailView
-        recipe={recipe}
-        ingredients={ingredients}
-        onEdit={!recipe.isBuiltin ? () => setEditOpen(true) : undefined}
-        onDelete={
-          !recipe.isBuiltin
-            ? async () => {
-                await deleteRecipe(recipe.id)
-                navigate('/recipes')
-              }
-            : undefined
-        }
-      />
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain bg-[#D8F2EE]">
+        <RecipeDetailView
+          recipe={recipe}
+          ingredients={ingredients}
+          onEdit={!recipe.isBuiltin ? () => setEditOpen(true) : undefined}
+          onDelete={
+            !recipe.isBuiltin
+              ? async () => {
+                  await deleteRecipe(recipe.id)
+                  navigate('/recipes')
+                }
+              : undefined
+          }
+        />
+      </div>
       {!recipe.isBuiltin && (
         <RecipeForm
           open={editOpen}

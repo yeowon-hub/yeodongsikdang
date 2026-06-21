@@ -15,7 +15,7 @@ export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: Reci
   const match = matchRecipe(recipe, getAvailableNames(ingredients))
 
   return (
-    <div className="px-4 py-4">
+    <div className="px-4 py-4 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]">
       <Link to="/recipes" className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500">
         <ArrowLeft size={16} />
         레시피 노트
