@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus } from 'lucide-react'
 import { getFridgeFrameStyle } from './FridgeInterior'
 import { getFridgeUnitTheme } from '@/lib/mainTabs'
 import { IngredientForm } from './IngredientForm'
 import { LevelStackInterior } from '@/components/shared/LevelStackInterior'
 import { StoragePageShell } from '@/components/storage/StoragePageShell'
+import { useSuppressGlobalAddFab } from '@/contexts/GlobalAddFabContext'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { ColdStorageLocation, FridgeUnitId, Ingredient } from '@/types'
 import { FRIDGE_UNITS } from '@/types'
@@ -24,6 +24,7 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
   const [searchParams] = useSearchParams()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
+  useSuppressGlobalAddFab(formOpen)
   const [activeCompartment, setActiveCompartment] = useState<number>(() => {
     return parseCompartmentIndex(searchParams.get('compartment')) ?? 1
   })
@@ -107,26 +108,12 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
               }}
               focusLevel={focusLevel}
               focusIngredientId={focusIngredientId}
-              emptyMessage={`${activeLabel}이 비어있어요.\n+ 버튼으로 재료를 추가해보세요!`}
+              emptyMessage={`${activeLabel}이 비어있어요.\n추가하기 버튼으로 재료를 추가해보세요!`}
               dividerVariant="metal"
             />
           </div>
         </div>
       </StoragePageShell>
-
-      {!formOpen && (
-        <button
-          type="button"
-          onClick={() => {
-            setEditing(undefined)
-            setFormOpen(true)
-          }}
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-header text-header-text shadow-lg hover:bg-header-dark active:scale-95"
-          aria-label="재료 추가"
-        >
-          <Plus size={28} />
-        </button>
-      )}
 
       <IngredientForm
         open={formOpen}

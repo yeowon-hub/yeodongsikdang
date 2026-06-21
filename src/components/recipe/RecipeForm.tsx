@@ -138,56 +138,68 @@ export function RecipeForm({ open, onClose, onSubmit, initial }: RecipeFormProps
               <button
                 type="button"
                 onClick={() => setIngredients([...ingredients, { name: '', quantity: '1', unit: '개' }])}
-                className="text-xs text-brand"
+                className="text-xs font-semibold text-header-text hover:text-header-dark"
               >
                 <Plus size={14} className="inline" /> 추가
               </button>
             </div>
             {ingredients.map((ing, i) => (
-              <div key={i} className="mb-2 flex gap-2">
-                <input
-                  type="text"
-                  value={ing.name}
-                  onChange={(e) => {
-                    const next = [...ingredients]
-                    next[i] = { ...ing, name: e.target.value }
-                    setIngredients(next)
-                  }}
-                  placeholder="재료명"
-                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
-                />
-                <input
-                  type="text"
-                  value={ing.quantity ?? ''}
-                  onChange={(e) => {
-                    const next = [...ingredients]
-                    next[i] = { ...ing, quantity: e.target.value }
-                    setIngredients(next)
-                  }}
-                  className="w-16 rounded-lg border border-gray-200 px-2 py-2 text-sm"
-                />
-                <select
-                  value={ing.unit ?? '개'}
-                  onChange={(e) => {
-                    const next = [...ingredients]
-                    next[i] = { ...ing, unit: e.target.value }
-                    setIngredients(next)
-                  }}
-                  className="w-16 rounded-lg border border-gray-200 px-1 py-2 text-sm"
-                >
-                  {UNITS.map((u) => (
-                    <option key={u} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => setIngredients(ingredients.filter((_, j) => j !== i))}
-                  className="text-gray-400"
-                >
-                  <Trash2 size={16} />
-                </button>
+              <div
+                key={i}
+                className="mb-2 rounded-xl border border-gray-100 bg-gray-50/50 p-2.5"
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  <input
+                    type="text"
+                    value={ing.name}
+                    onChange={(e) => {
+                      const next = [...ingredients]
+                      next[i] = { ...ing, name: e.target.value }
+                      setIngredients(next)
+                    }}
+                    placeholder="재료명"
+                    className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIngredients(ingredients.filter((_, j) => j !== i))}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-white hover:text-gray-600"
+                    aria-label="재료 삭제"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                <div className="mt-2 flex min-w-0 items-center gap-2">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={ing.quantity ?? ''}
+                    onChange={(e) => {
+                      const next = [...ingredients]
+                      next[i] = { ...ing, quantity: e.target.value }
+                      setIngredients(next)
+                    }}
+                    placeholder="수량"
+                    aria-label="수량"
+                    className="w-[4.75rem] shrink-0 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-center text-sm"
+                  />
+                  <select
+                    value={ing.unit ?? '개'}
+                    onChange={(e) => {
+                      const next = [...ingredients]
+                      next[i] = { ...ing, unit: e.target.value }
+                      setIngredients(next)
+                    }}
+                    aria-label="단위"
+                    className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 py-2 text-sm"
+                  >
+                    {UNITS.map((u) => (
+                      <option key={u} value={u}>
+                        {u}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             ))}
           </div>
@@ -198,14 +210,14 @@ export function RecipeForm({ open, onClose, onSubmit, initial }: RecipeFormProps
               <button
                 type="button"
                 onClick={() => setSteps([...steps, { order: steps.length + 1, text: '' }])}
-                className="text-xs text-brand"
+                className="text-xs font-semibold text-header-text hover:text-header-dark"
               >
                 <Plus size={14} className="inline" /> 추가
               </button>
             </div>
             {steps.map((step, i) => (
               <div key={i} className="mb-2 flex gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-header/10 text-xs font-bold text-header-text">
                   {i + 1}
                 </span>
                 <input
@@ -232,7 +244,7 @@ export function RecipeForm({ open, onClose, onSubmit, initial }: RecipeFormProps
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-brand py-3 text-sm font-semibold text-white"
+            className="w-full rounded-xl bg-header py-3 text-sm font-semibold text-header-text hover:bg-header-dark"
           >
             {initial ? '수정하기' : '저장하기'}
           </button>

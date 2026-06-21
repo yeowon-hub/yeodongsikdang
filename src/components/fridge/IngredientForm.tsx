@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Camera, Loader2, Sparkles, X } from 'lucide-react'
+import { Archive, Camera, Image, Loader2, Package, Refrigerator, Snowflake, Sparkles, X } from 'lucide-react'
 import { compressImageToDataUrl } from '@/lib/image'
+import {
+  ADD_STORAGE_CHOICES,
+  addChoiceIdFromLocation,
+  locationFromAddChoiceId,
+  type AddStorageChoiceId,
+} from '@/lib/addStorageOptions'
 import {
   analyzeIngredientImage,
   attachProductImages,
@@ -19,6 +25,13 @@ import {
 } from '@/types'
 
 const CUSTOM_UNIT_VALUE = '__custom__'
+
+const STORAGE_ICONS = {
+  general: Refrigerator,
+  kimchi: Snowflake,
+  shelf: Package,
+  pantry: Archive,
+} as const
 
 function resolveUnit(select: string, custom: string) {
   if (select === CUSTOM_UNIT_VALUE) return custom.trim() || '개'
@@ -77,7 +90,13 @@ export function IngredientForm({
   >(null)
   const [sourceImageUrl, setSourceImageUrl] = useState<string | undefined>()
   const [modalMaxH, setModalMaxH] = useState<number | undefined>()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [photoSourceOpen, setPhotoSourceOpen] = useState(false)
+  const [addLocation, setAddLocation] = useState<StorageLocation>(defaultLocation)
+  const [addStorageChoice, setAddStorageChoice] = useState<AddStorageChoiceId>(() =>
+    addChoiceIdFromLocation(defaultLocation),
+  )
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -100,10 +119,13 @@ export function IngredientForm({
       setImageUrl(undefined)
       setDetectedBatch(null)
       setSourceImageUrl(undefined)
+      setAddLocation(defaultLocation)
+      setAddStorageChoice(addChoiceIdFromLocation(defaultLocation))
     }
     setImageError('')
     setAnalyzing(false)
-  }, [initial, open])
+    setPhotoSourceOpen(false)
+  }, [initial, open, defaultLocation])
 
   useEffect(() => {
     if (!open) return
@@ -138,7 +160,8 @@ export function IngredientForm({
 
   if (!open) return null
 
-  const showShelfLevel = usesShelfLevel(defaultLocation)
+  const activeLocation = initial?.location ?? addLocation
+  const showShelfLevel = usesShelfLevel(activeLocation)
   const moveTargets = ALL_STORAGE_LOCATIONS.filter((loc) => loc !== initial?.location)
 
   const parseQuantity = () => {
@@ -156,7 +179,7 @@ export function IngredientForm({
       name: name.trim(),
       quantity: parseQuantity(),
       unit: resolveUnit(unitSelect, customUnit),
-      location: initial?.location ?? defaultLocation,
+      location: activeLocation,
       expiryDate: expiryDate || undefined,
       shelfLevel: showShelfLevel ? shelfLevel : undefined,
       imageUrl,
@@ -202,7 +225,7 @@ export function IngredientForm({
 
   const handleBatchAdd = async () => {
     if (!detectedBatch?.length || !onSubmitBatch) return
-    const location = defaultLocation
+    const location = activeLocation
     await onSubmitBatch(
       detectedBatch.map((item) => ({
         name: item.name,
@@ -300,6 +323,37 @@ export function IngredientForm({
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             <div className="space-y-4">
+              {!initial && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">보관 장소</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {ADD_STORAGE_CHOICES.map((choice) => {
+                      const Icon = STORAGE_ICONS[choice.id]
+                      const selected = addStorageChoice === choice.id
+                      return (
+                        <button
+                          key={choice.id}
+                          type="button"
+                          onClick={() => {
+                            setAddStorageChoice(choice.id)
+                            setAddLocation(locationFromAddChoiceId(choice.id))
+                            setShelfLevel(0)
+                          }}
+                          className={`flex flex-col items-center gap-1.5 rounded-xl border px-1 py-3 transition-colors ${
+                            selected
+                              ? 'border-header bg-header/15 text-header-text'
+                              : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon size={22} strokeWidth={2} />
+                          <span className="text-xs font-bold">{choice.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">사진 (선택)</label>
                 {!initial && (
@@ -308,10 +362,20 @@ export function IngredientForm({
                   </p>
                 )}
                 <input
-                  ref={fileInputRef}
+                  ref={cameraInputRef}
                   type="file"
                   accept="image/*"
                   capture="environment"
+                  className="hidden"
+                  onChange={(e) => {
+                    void handleImagePick(e.target.files?.[0])
+                    e.target.value = ''
+                  }}
+                />
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
                   className="hidden"
                   onChange={(e) => {
                     void handleImagePick(e.target.files?.[0])
@@ -357,13 +421,13 @@ export function IngredientForm({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-200 py-8 text-gray-500 hover:border-brand hover:text-brand"
+                    onClick={() => setPhotoSourceOpen(true)}
+                    className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-header/40 bg-header/5 py-8 text-header-text/80 transition-colors hover:border-header hover:bg-header/15 hover:text-header-text active:bg-header/20"
                   >
                     <Camera size={28} />
-                    <span className="text-sm">사진 추가하기</span>
+                    <span className="text-sm font-medium">사진 추가하기</span>
                     {!initial && (
-                      <span className="text-[11px] text-gray-400">장바구니 캡처도 OK</span>
+                      <span className="text-[11px] text-header-text/60">장바구니 캡처도 OK</span>
                     )}
                   </button>
                 )}
@@ -427,7 +491,7 @@ export function IngredientForm({
                   onChange={(e) => setName(e.target.value)}
                   onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
                   placeholder="예: 두부, 계란, 김치"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-header focus:outline-none focus:ring-1 focus:ring-header/30"
                   required
                 />
               </div>
@@ -455,7 +519,7 @@ export function IngredientForm({
                       }
                     }}
                     placeholder="1"
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-header focus:outline-none"
                   />
                 </div>
                 <div className="flex-1">
@@ -463,7 +527,7 @@ export function IngredientForm({
                   <select
                     value={unitSelect}
                     onChange={(e) => setUnitSelect(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-header focus:outline-none"
                   >
                     {UNITS.map((u) => (
                       <option key={u} value={u}>
@@ -485,7 +549,7 @@ export function IngredientForm({
                     onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
                     placeholder="예: 조각, 마리, 봉지"
                     maxLength={12}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-header focus:outline-none focus:ring-1 focus:ring-header/30"
                   />
                 </div>
               )}
@@ -497,28 +561,28 @@ export function IngredientForm({
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
                   onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-header focus:outline-none"
                 />
               </div>
 
               {showShelfLevel && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
-                    {defaultLocation === 'shelf'
+                    {activeLocation === 'shelf'
                       ? '선반 칸'
-                      : defaultLocation === 'pantry'
+                      : activeLocation === 'pantry'
                         ? '펜트리 칸'
                         : '선반 단'}
                   </label>
                   <select
                     value={shelfLevel}
                     onChange={(e) => setShelfLevel(Number(e.target.value))}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-header focus:outline-none"
                   >
                     {SHELF_LEVELS.map((level) => (
                       <option key={level} value={level}>
                         {level + 1}
-                        {defaultLocation === 'shelf' || defaultLocation === 'pantry' ? '칸' : '단'}
+                        {activeLocation === 'shelf' || activeLocation === 'pantry' ? '칸' : '단'}
                         {level === 0 ? ' (최상)' : level === SHELF_LEVEL_COUNT - 1 ? ' (최하)' : ''}
                       </option>
                     ))}
@@ -548,6 +612,55 @@ export function IngredientForm({
             </div>
           </div>
         </form>
+
+        {photoSourceOpen && (
+          <div className="absolute inset-0 z-10 flex flex-col justify-end rounded-t-2xl sm:rounded-2xl">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/30"
+              aria-label="닫기"
+              onClick={() => setPhotoSourceOpen(false)}
+            />
+            <div className="relative rounded-t-2xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.12)]">
+              <p className="mb-3 text-center text-sm font-semibold text-gray-800">사진 가져오기</p>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoSourceOpen(false)
+                    cameraInputRef.current?.click()
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
+                    <Camera size={20} />
+                  </span>
+                  <span className="text-sm font-semibold text-gray-800">카메라</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoSourceOpen(false)
+                    galleryInputRef.current?.click()
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
+                    <Image size={20} />
+                  </span>
+                  <span className="text-sm font-semibold text-gray-800">갤러리</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPhotoSourceOpen(false)}
+                  className="w-full rounded-xl py-3 text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>,
     document.body,

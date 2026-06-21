@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { parseLevelIndex } from '@/lib/navigation'
-import { Plus } from 'lucide-react'
 import { IngredientForm } from '@/components/fridge/IngredientForm'
 import { DryStorageView } from '@/components/storage/DryStorageView'
+import { useSuppressGlobalAddFab } from '@/contexts/GlobalAddFabContext'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { Ingredient } from '@/types'
 
@@ -13,6 +13,7 @@ export function ShelfPage() {
   const focusIngredientId = searchParams.get('ingredient') ?? undefined
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
+  useSuppressGlobalAddFab(formOpen)
   const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient, moveIngredientToLevel } =
     useIngredients('shelf')
 
@@ -44,22 +45,8 @@ export function ShelfPage() {
         onIngredientMoveToLevel={(id, level) => moveIngredientToLevel(id, level)}
         focusLevel={focusLevel}
         focusIngredientId={focusIngredientId}
-        emptyMessage={'선반이 비어있어요.\n+ 버튼으로 재료를 추가해보세요!'}
+        emptyMessage={'선반이 비어있어요.\n추가하기 버튼으로 재료를 추가해보세요!'}
       />
-
-      {!formOpen && (
-        <button
-          type="button"
-          onClick={() => {
-            setEditing(undefined)
-            setFormOpen(true)
-          }}
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-header text-header-text shadow-lg hover:bg-header-dark active:scale-95"
-          aria-label="재료 추가"
-        >
-          <Plus size={28} />
-        </button>
-      )}
 
       <IngredientForm
         open={formOpen}

@@ -21,7 +21,7 @@ export function AuthForm() {
 
   if (!isConfigured) {
     return (
-      <div className="px-4 py-8 text-center">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-header/10 px-4 py-8 text-center">
         <p className="text-sm text-gray-600">
           Supabase가 설정되지 않았습니다.
           <br />
@@ -36,7 +36,7 @@ export function AuthForm() {
 
   if (user) {
     return (
-      <div className="px-4 py-6">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-header/10 px-4 py-6">
         <div className="rounded-2xl bg-white p-6 shadow-sm text-center">
           <p className="text-lg font-semibold text-gray-800">로그인됨</p>
           <p className="mt-1 text-sm text-gray-500">{profileName}</p>
@@ -98,7 +98,7 @@ export function AuthForm() {
   }
 
   return (
-    <div className="px-4 py-6">
+    <div className="min-h-0 flex-1 overflow-y-auto bg-header/10 px-4 py-6">
       <div className="rounded-2xl bg-white p-6 shadow-sm">
         <h2 className="mb-1 text-xl font-bold text-gray-800">
           {mode === 'login' ? '로그인' : '회원가입'}
@@ -107,24 +107,24 @@ export function AuthForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-header-text/40" size={18} />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="이메일"
-              className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm"
+              className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:border-header focus:outline-none focus:ring-1 focus:ring-header/30"
               required
             />
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-header-text/40" size={18} />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호"
-              className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm"
+              className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:border-header focus:outline-none focus:ring-1 focus:ring-header/30"
               required
               minLength={6}
             />
@@ -135,7 +135,7 @@ export function AuthForm() {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-header py-3 text-sm font-semibold text-header-text hover:bg-header-dark disabled:opacity-50"
           >
             <LogIn size={18} />
             {loading ? '처리 중...' : mode === 'login' ? '로그인' : '회원가입'}
@@ -146,7 +146,7 @@ export function AuthForm() {
           type="button"
           onClick={handleKakao}
           disabled={loading}
-          className="mt-3 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-700 disabled:opacity-50"
+          className="mt-3 w-full rounded-xl border border-header/30 bg-header/5 py-3 text-sm font-medium text-header-text hover:bg-header/15 disabled:opacity-50"
         >
           카카오로 계속하기
         </button>
@@ -156,7 +156,7 @@ export function AuthForm() {
           <button
             type="button"
             onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-            className="font-medium text-brand"
+            className="font-semibold text-header-text hover:text-header-dark"
           >
             {mode === 'login' ? '회원가입' : '로그인'}
           </button>

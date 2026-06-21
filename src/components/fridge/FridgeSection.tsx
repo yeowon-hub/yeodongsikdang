@@ -45,10 +45,10 @@ export function FridgeSection({
     >
       <div
         className={`mb-1 flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 ${
-          isActive ? 'bg-brand/10 ring-1 ring-brand/30' : 'bg-white/60'
+          isActive ? 'bg-header/10 ring-1 ring-header/30' : 'bg-white/60'
         }`}
       >
-        <Icon size={14} className={isActive ? 'text-brand' : 'text-gray-500'} />
+        <Icon size={14} className={isActive ? 'text-header-text' : 'text-gray-500'} />
         <span className="text-xs font-semibold leading-none text-gray-800">{meta.shortLabel}</span>
       </div>
 

@@ -113,7 +113,7 @@ export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: Reci
             .sort((a, b) => a.order - b.order)
             .map((step) => (
               <li key={step.order} className="flex gap-3 text-sm">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-header text-xs font-bold text-header-text">
                   {step.order}
                 </span>
                 <span className="pt-0.5 text-gray-700">{step.text}</span>

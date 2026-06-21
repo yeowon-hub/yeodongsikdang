@@ -4,6 +4,7 @@ import { useRecipe, useRecipes } from '@/hooks/useRecipes'
 import { useIngredients } from '@/hooks/useIngredients'
 import { RecipeDetailView } from '@/components/recipe/RecipeDetail'
 import { RecipeForm } from '@/components/recipe/RecipeForm'
+import { useSuppressGlobalAddFab } from '@/contexts/GlobalAddFabContext'
 
 export function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -12,6 +13,7 @@ export function RecipeDetailPage() {
   const { ingredients } = useIngredients()
   const { updateRecipe, deleteRecipe } = useRecipes()
   const [editOpen, setEditOpen] = useState(false)
+  useSuppressGlobalAddFab(editOpen)
 
   if (recipe === undefined) {
     return <p className="py-8 text-center text-sm text-gray-500">불러오는 중...</p>

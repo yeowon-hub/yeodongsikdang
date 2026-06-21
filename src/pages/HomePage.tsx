@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useIngredients } from '@/hooks/useIngredients'
 import { ExpiringIngredientCard } from '@/components/home/ExpiringIngredientCard'
 import { IngredientForm } from '@/components/fridge/IngredientForm'
+import { useSuppressGlobalAddFab } from '@/contexts/GlobalAddFabContext'
 import { getExpiringSoon } from '@/lib/recommend'
 import { sortByExpiry } from '@/lib/sortIngredients'
 import { ASSETS } from '@/lib/assets'
@@ -41,6 +42,7 @@ export function HomePage() {
   const expiring = sortByExpiry(getExpiringSoon(ingredients, 3))
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
+  useSuppressGlobalAddFab(formOpen)
 
   const handleSubmit = async (data: {
     name: string

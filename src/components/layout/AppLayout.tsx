@@ -1,8 +1,10 @@
 import { Link, useLocation } from 'react-router-dom'
 import { BottomTabBar } from './BottomTabBar'
+import { GlobalAddButton } from './GlobalAddButton'
 import { GlobalSearch } from './GlobalSearch'
 import { HomeViewport } from './HomeViewport'
 import { SwipeableMainOutlet } from './SwipeableMainOutlet'
+import { GlobalAddFabProvider } from '@/contexts/GlobalAddFabContext'
 import { useAuth } from '@/hooks/useSync'
 import { ASSETS } from '@/lib/assets'
 import { User, LogIn } from 'lucide-react'
@@ -59,23 +61,26 @@ export function AppLayout() {
   const isHome = location.pathname === '/home'
 
   return (
-    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-white">
-      <div
-        className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-hidden"
-        style={{ paddingBottom: TAB_BAR_PADDING }}
-      >
-        <AppHeader />
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          {isHome ? (
-            <HomeViewport>
+    <GlobalAddFabProvider>
+      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-white">
+        <div
+          className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-hidden"
+          style={{ paddingBottom: TAB_BAR_PADDING }}
+        >
+          <AppHeader />
+          <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {isHome ? (
+              <HomeViewport>
+                <SwipeableMainOutlet />
+              </HomeViewport>
+            ) : (
               <SwipeableMainOutlet />
-            </HomeViewport>
-          ) : (
-            <SwipeableMainOutlet />
-          )}
-        </main>
+            )}
+          </main>
+        </div>
+        <BottomTabBar />
+        <GlobalAddButton />
       </div>
-      <BottomTabBar />
-    </div>
+    </GlobalAddFabProvider>
   )
 }
