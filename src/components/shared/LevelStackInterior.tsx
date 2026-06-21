@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Ingredient } from '@/types'
 import { SHELF_LEVELS } from '@/types'
 import { IngredientCard } from '@/components/fridge/IngredientCard'
@@ -18,6 +18,7 @@ export interface LevelStackTopSelector {
 interface LevelStackInteriorProps {
   ingredients: Ingredient[]
   onIngredientClick: (ingredient: Ingredient) => void
+  onIngredientMoveToLevel?: (ingredientId: string, level: number) => void
   theme: LevelStackTheme
   levelLabel: '칸' | '단'
   topSelector?: LevelStackTopSelector
@@ -28,10 +29,12 @@ interface LevelStackInteriorProps {
 }
 
 const ROW_HEIGHT_PX = 70
+const DRAG_THRESHOLD_PX = 12
 
 export function LevelStackInterior({
   ingredients,
   onIngredientClick,
+  onIngredientMoveToLevel,
   theme,
   levelLabel,
   topSelector,
@@ -42,6 +45,16 @@ export function LevelStackInterior({
 }: LevelStackInteriorProps) {
   const levelRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const ingredientRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const dragRef = useRef<{
+    id: string
+    fromLevel: number
+    startX: number
+    startY: number
+    dragging: boolean
+  } | null>(null)
+
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dropLevel, setDropLevel] = useState<number | null>(null)
 
   useEffect(() => {
     if (focusIngredientId === undefined && focusLevel === undefined) return
@@ -65,6 +78,76 @@ export function LevelStackInterior({
 
     return () => cancelAnimationFrame(frame)
   }, [focusIngredientId, focusLevel, ingredients])
+
+  const findLevelAtY = (clientY: number): number | null => {
+    for (const [level, el] of levelRefs.current) {
+      const rect = el.getBoundingClientRect()
+      if (clientY >= rect.top && clientY <= rect.bottom) return level
+    }
+    return null
+  }
+
+  const finishDrag = (clientY: number) => {
+    const drag = dragRef.current
+    dragRef.current = null
+    setDraggingId(null)
+    setDropLevel(null)
+
+    if (!drag?.dragging || !onIngredientMoveToLevel) return
+    const targetLevel = findLevelAtY(clientY) ?? drag.fromLevel
+    if (targetLevel !== drag.fromLevel) {
+      onIngredientMoveToLevel(drag.id, targetLevel)
+    }
+  }
+
+  const handlePointerDown = (
+    e: React.PointerEvent<HTMLDivElement>,
+    item: Ingredient,
+    level: number,
+  ) => {
+    if (!onIngredientMoveToLevel) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragRef.current = {
+      id: item.id,
+      fromLevel: level,
+      startX: e.clientX,
+      startY: e.clientY,
+      dragging: false,
+    }
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag) return
+
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    if (!drag.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+      if (Math.abs(dy) > Math.abs(dx)) {
+        drag.dragging = true
+        setDraggingId(drag.id)
+      } else {
+        dragRef.current = null
+        return
+      }
+    }
+    if (drag.dragging) {
+      setDropLevel(findLevelAtY(e.clientY))
+    }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent, item: Ingredient) => {
+    const drag = dragRef.current
+    if (!drag) return
+
+    if (!drag.dragging) {
+      dragRef.current = null
+      onIngredientClick(item)
+      return
+    }
+
+    finishDrag(e.clientY)
+  }
 
   const grouped = SHELF_LEVELS.map((level) => ({
     level,
@@ -108,7 +191,9 @@ export function LevelStackInterior({
               if (el) levelRefs.current.set(level, el)
               else levelRefs.current.delete(level)
             }}
-            className="flex shrink-0 flex-col border-b border-black/5 last:border-b-0"
+            className={`flex shrink-0 flex-col border-b border-black/5 transition-colors last:border-b-0 ${
+              dropLevel === level ? 'bg-white/35 ring-1 ring-inset ring-header/40' : ''
+            }`}
           >
             <div className="shrink-0 px-2.5 pt-1.5">
               <span className="inline-block rounded-md bg-white/50 px-2 py-0.5 text-[10px] font-medium leading-none text-gray-600">
@@ -132,11 +217,33 @@ export function LevelStackInterior({
                         if (el) ingredientRefs.current.set(item.id, el)
                         else ingredientRefs.current.delete(item.id)
                       }}
-                      className="shrink-0"
+                      className={`shrink-0 touch-none select-none ${
+                        draggingId === item.id ? 'opacity-60' : ''
+                      }`}
+                      onPointerDown={
+                        onIngredientMoveToLevel
+                          ? (e) => handlePointerDown(e, item, level)
+                          : undefined
+                      }
+                      onPointerMove={onIngredientMoveToLevel ? handlePointerMove : undefined}
+                      onPointerUp={
+                        onIngredientMoveToLevel ? (e) => handlePointerUp(e, item) : undefined
+                      }
+                      onPointerCancel={
+                        onIngredientMoveToLevel
+                          ? (e) => {
+                              if (dragRef.current?.dragging) finishDrag(e.clientY)
+                              else dragRef.current = null
+                            }
+                          : undefined
+                      }
+                      onClick={
+                        onIngredientMoveToLevel ? undefined : () => onIngredientClick(item)
+                      }
                     >
                       <IngredientCard
                         ingredient={item}
-                        onClick={() => onIngredientClick(item)}
+                        onClick={onIngredientMoveToLevel ? undefined : () => onIngredientClick(item)}
                         compact
                         highlighted={focusIngredientId === item.id}
                       />

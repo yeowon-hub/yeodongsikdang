@@ -24,12 +24,12 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route index element={<Navigate to="/home" replace />} />
             <Route path="home" element={<HomePage />} />
-            <Route path="fridge" element={<Navigate to="/fridge/general" replace />} />
+            <Route path="fridge" element={<Navigate to="/fridge/general?compartment=fridge" replace />} />
             <Route path="fridge/general" element={<GeneralFridgePage />} />
             <Route path="fridge/kimchi" element={<KimchiFridgePage />} />
-            <Route path="fridge1" element={<Navigate to="/fridge/general" replace />} />
-            <Route path="fridge2" element={<Navigate to="/fridge/kimchi" replace />} />
-            <Route path="freezer" element={<Navigate to="/fridge/general" replace />} />
+            <Route path="fridge1" element={<Navigate to="/fridge/general?compartment=fridge" replace />} />
+            <Route path="fridge2" element={<Navigate to="/fridge/kimchi?compartment=fridge" replace />} />
+            <Route path="freezer" element={<Navigate to="/fridge/general?compartment=fridge" replace />} />
             <Route path="shelf" element={<ShelfPage />} />
             <Route path="pantry" element={<PantryPage />} />
             <Route path="recipes" element={<RecipesPage />} />

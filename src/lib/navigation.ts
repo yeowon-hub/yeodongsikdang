@@ -78,8 +78,8 @@ export function getRecipeRoute(id: string): string {
 }
 
 export const HOME_TILES = [
-  { id: 'general' as const, label: '일반', route: '/fridge/general', color: 'bg-fridge text-fridge-dark' },
-  { id: 'kimchi' as const, label: '김치', route: '/fridge/kimchi', color: 'bg-amber-50 text-amber-800' },
+  { id: 'general' as const, label: '일반', route: '/fridge/general?compartment=fridge', color: 'bg-fridge text-fridge-dark' },
+  { id: 'kimchi' as const, label: '김치', route: '/fridge/kimchi?compartment=fridge', color: 'bg-amber-50 text-amber-800' },
   { id: 'shelf' as const, label: '선반', route: '/shelf', color: 'bg-shelf text-shelf-dark' },
   { id: 'pantry' as const, label: '펜트리', route: '/pantry', color: 'bg-pantry text-pantry-dark' },
 ] as const

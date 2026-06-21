@@ -4,10 +4,18 @@ import { Search, X } from 'lucide-react'
 import { useIngredients } from '@/hooks/useIngredients'
 import { useRecipes } from '@/hooks/useRecipes'
 import { getIngredientRoute, getRecipeRoute } from '@/lib/navigation'
+import { matchesSearchText } from '@/lib/search'
 import { STORAGE_META } from '@/types'
+import type { Recipe } from '@/types'
 
 function normalizeQuery(q: string) {
-  return q.trim().toLowerCase()
+  return q.trim()
+}
+
+function recipeMatchesSearch(recipe: Recipe, query: string): boolean {
+  if (matchesSearchText(recipe.title, query)) return true
+  if (recipe.description && matchesSearchText(recipe.description, query)) return true
+  return recipe.ingredients.some((ing) => matchesSearchText(ing.name, query))
 }
 
 interface GlobalSearchProps {
@@ -28,7 +36,7 @@ export function GlobalSearch({ overlay = false }: GlobalSearchProps) {
     if (!q) return []
 
     const ingHits = ingredients
-      .filter((i) => i.name.toLowerCase().includes(q))
+      .filter((i) => matchesSearchText(i.name, q))
       .slice(0, 8)
       .map((i) => ({
         type: 'ingredient' as const,
@@ -39,7 +47,7 @@ export function GlobalSearch({ overlay = false }: GlobalSearchProps) {
       }))
 
     const recipeHits = (recipes ?? [])
-      .filter((r) => r.title.toLowerCase().includes(q))
+      .filter((r) => recipeMatchesSearch(r, q))
       .slice(0, 8)
       .map((r) => ({
         type: 'recipe' as const,

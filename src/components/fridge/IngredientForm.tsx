@@ -60,7 +60,9 @@ export function IngredientForm({
   const [shelfLevel, setShelfLevel] = useState(0)
   const [imageUrl, setImageUrl] = useState<string | undefined>()
   const [imageError, setImageError] = useState('')
+  const [modalMaxH, setModalMaxH] = useState<number | undefined>()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (initial) {
@@ -92,6 +94,28 @@ export function IngredientForm({
       document.body.style.overflow = prev
     }
   }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const vv = window.visualViewport
+    const update = () => {
+      if (vv) setModalMaxH(Math.floor(vv.height * 0.92))
+      else setModalMaxH(undefined)
+    }
+    update()
+    vv?.addEventListener('resize', update)
+    vv?.addEventListener('scroll', update)
+    return () => {
+      vv?.removeEventListener('resize', update)
+      vv?.removeEventListener('scroll', update)
+    }
+  }, [open])
+
+  const scrollFieldIntoView = (el: HTMLElement) => {
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    })
+  }
 
   if (!open) return null
 
@@ -150,7 +174,12 @@ export function IngredientForm({
         onClick={onClose}
       />
 
-      <div className="relative flex max-h-[min(92dvh,100%)] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:max-h-[90vh] sm:rounded-2xl">
+      <div
+        className="relative flex w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+        style={{
+          maxHeight: modalMaxH ? `${modalMaxH}px` : 'min(92dvh, 100%)',
+        }}
+      >
         <form id="ingredient-form" onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-100 px-4 pb-3 pt-5 sm:px-5">
             <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -186,7 +215,11 @@ export function IngredientForm({
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div
+            ref={scrollRef}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">사진 (선택)</label>
@@ -236,6 +269,7 @@ export function IngredientForm({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
                   placeholder="예: 두부, 계란, 김치"
                   className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                   required
@@ -256,6 +290,7 @@ export function IngredientForm({
                     onFocus={(e) => {
                       if (quantityInput === '0') setQuantityInput('')
                       e.currentTarget.select()
+                      scrollFieldIntoView(e.currentTarget)
                     }}
                     onBlur={() => {
                       const trimmed = quantityInput.trim()
@@ -291,6 +326,7 @@ export function IngredientForm({
                     type="text"
                     value={customUnit}
                     onChange={(e) => setCustomUnit(e.target.value)}
+                    onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
                     placeholder="예: 조각, 마리, 봉지"
                     maxLength={12}
                     className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
@@ -304,6 +340,7 @@ export function IngredientForm({
                   type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
+                  onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
                   className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base focus:border-brand focus:outline-none"
                 />
               </div>

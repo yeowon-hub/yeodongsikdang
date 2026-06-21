@@ -136,6 +136,7 @@ export interface Recipe {
   servings?: number
   category?: string
   imageUrl?: string
+  sourceUrl?: string
   isBuiltin: boolean
   createdAt: string
   updatedAt: string

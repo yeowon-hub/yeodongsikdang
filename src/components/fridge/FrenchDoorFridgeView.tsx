@@ -25,12 +25,12 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | undefined>()
   const [activeCompartment, setActiveCompartment] = useState<number>(() => {
-    return parseCompartmentIndex(searchParams.get('compartment')) ?? 0
+    return parseCompartmentIndex(searchParams.get('compartment')) ?? 1
   })
   const focusLevel = parseLevelIndex(searchParams.get('level'))
   const focusIngredientId = searchParams.get('ingredient') ?? undefined
 
-  const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient } =
+  const { ingredients, addIngredient, updateIngredient, deleteIngredient, moveIngredient, moveIngredientToLevel } =
     useIngredients()
 
   useEffect(() => {
@@ -87,6 +87,7 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
                 setEditing(ing)
                 setFormOpen(true)
               }}
+              onIngredientMoveToLevel={(id, level) => moveIngredientToLevel(id, level)}
               theme={getFridgeUnitTheme(unitId)}
               levelLabel="단"
               topSelector={{

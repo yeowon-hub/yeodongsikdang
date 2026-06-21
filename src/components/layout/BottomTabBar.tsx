@@ -3,8 +3,8 @@ import { Refrigerator, Snowflake, Package, Archive, Home } from 'lucide-react'
 import { useExpiringCount } from '@/hooks/useIngredients'
 
 const tabs = [
-  { to: '/fridge/general', label: '일반', icon: Refrigerator, match: '/fridge/general' },
-  { to: '/fridge/kimchi', label: '김치', icon: Snowflake, match: '/fridge/kimchi' },
+  { to: '/fridge/general?compartment=fridge', label: '일반', icon: Refrigerator, match: '/fridge/general' },
+  { to: '/fridge/kimchi?compartment=fridge', label: '김치', icon: Snowflake, match: '/fridge/kimchi' },
   { to: '/home', label: '홈', icon: Home, match: '/home' },
   { to: '/shelf', label: '선반', icon: Package, match: '/shelf' },
   { to: '/pantry', label: '펜트리', icon: Archive, match: '/pantry' },

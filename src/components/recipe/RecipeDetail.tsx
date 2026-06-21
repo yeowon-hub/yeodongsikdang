@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, Clock, Users, ExternalLink, Pencil, Trash2 } from 'lucide-react'
 import type { Recipe } from '@/types'
 import { getAvailableNames, matchRecipe } from '@/lib/recommend'
 import type { Ingredient } from '@/types'
@@ -23,6 +23,18 @@ export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: Reci
 
       <h2 className="text-2xl font-bold text-gray-800">{recipe.title}</h2>
       {recipe.description && <p className="mt-2 text-sm text-gray-600">{recipe.description}</p>}
+
+      {recipe.sourceUrl && (
+        <a
+          href={recipe.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
+        >
+          <ExternalLink size={14} />
+          참고 링크 열기
+        </a>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-3 text-sm text-gray-500">
         {recipe.cookingTime && (

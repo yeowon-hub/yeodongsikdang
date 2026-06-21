@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X, Plus, Trash2 } from 'lucide-react'
 import type { Recipe, RecipeIngredient, RecipeStep } from '@/types'
 import { CATEGORIES, UNITS } from '@/types'
@@ -14,6 +14,7 @@ interface RecipeFormProps {
     servings?: number
     ingredients: RecipeIngredient[]
     steps: RecipeStep[]
+    sourceUrl?: string
   }) => void
   initial?: Recipe
 }
@@ -30,6 +31,19 @@ export function RecipeForm({ open, onClose, onSubmit, initial }: RecipeFormProps
   const [steps, setSteps] = useState<RecipeStep[]>(
     initial?.steps ?? [{ order: 1, text: '' }],
   )
+  const [sourceUrl, setSourceUrl] = useState(initial?.sourceUrl ?? '')
+
+  useEffect(() => {
+    if (!open) return
+    setTitle(initial?.title ?? '')
+    setDescription(initial?.description ?? '')
+    setCategory(initial?.category ?? '기타')
+    setCookingTime(initial?.cookingTime ?? 30)
+    setServings(initial?.servings ?? 2)
+    setIngredients(initial?.ingredients ?? [{ name: '', quantity: '1', unit: '개' }])
+    setSteps(initial?.steps ?? [{ order: 1, text: '' }])
+    setSourceUrl(initial?.sourceUrl ?? '')
+  }, [initial, open])
 
   if (!open) return null
 
@@ -48,6 +62,7 @@ export function RecipeForm({ open, onClose, onSubmit, initial }: RecipeFormProps
       servings,
       ingredients: validIngredients,
       steps: validSteps,
+      sourceUrl: sourceUrl.trim() || undefined,
     })
     onClose()
   }
@@ -78,6 +93,17 @@ export function RecipeForm({ open, onClose, onSubmit, initial }: RecipeFormProps
             rows={2}
             className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm"
           />
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">참고 링크 (선택)</label>
+            <input
+              type="url"
+              value={sourceUrl}
+              onChange={(e) => setSourceUrl(e.target.value)}
+              placeholder="유튜브, 블로그 URL"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm"
+              inputMode="url"
+            />
+          </div>
           <div className="flex gap-3">
             <select
               value={category}

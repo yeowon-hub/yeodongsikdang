@@ -64,6 +64,10 @@ export function useIngredients(location?: StorageLocation) {
     await updateIngredient(id, { location: newLocation })
   }
 
+  const moveIngredientToLevel = async (id: string, shelfLevel: number) => {
+    await updateIngredient(id, { shelfLevel })
+  }
+
   return {
     ingredients: ingredients ?? [],
     loading: ingredients === undefined,
@@ -71,6 +75,7 @@ export function useIngredients(location?: StorageLocation) {
     updateIngredient,
     deleteIngredient,
     moveIngredient,
+    moveIngredientToLevel,
   }
 }
 

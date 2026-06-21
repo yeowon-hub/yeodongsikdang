@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useIngredients } from '@/hooks/useIngredients'
-import { IngredientCard } from '@/components/fridge/IngredientCard'
+import { ExpiringIngredientCard } from '@/components/home/ExpiringIngredientCard'
+import { IngredientForm } from '@/components/fridge/IngredientForm'
 import { getExpiringSoon } from '@/lib/recommend'
 import { sortByExpiry } from '@/lib/sortIngredients'
 import { ASSETS } from '@/lib/assets'
-import { getIngredientRoute } from '@/lib/navigation'
 import {
   HOME_BANNER_BOTTOM_PINK_FLEX,
   HOME_BANNER_FLEX,
@@ -18,10 +19,11 @@ import {
   HOME_TILE_FLEX,
   homeRectStyle,
 } from '@/lib/homeDesignSpec'
+import type { Ingredient } from '@/types'
 
 const NAV_HOTSPOTS = [
-  { id: 'fridge', route: '/fridge/general', rect: HOME_HOTSPOTS.fridge, label: '일반 냉장고' },
-  { id: 'kimchi', route: '/fridge/kimchi', rect: HOME_HOTSPOTS.kimchi, label: '김치냉장고' },
+  { id: 'fridge', route: '/fridge/general?compartment=fridge', rect: HOME_HOTSPOTS.fridge, label: '일반 냉장고' },
+  { id: 'kimchi', route: '/fridge/kimchi?compartment=fridge', rect: HOME_HOTSPOTS.kimchi, label: '김치냉장고' },
   { id: 'shelf', route: '/shelf', rect: HOME_HOTSPOTS.shelf, label: '선반' },
   { id: 'pantry', route: '/pantry', rect: HOME_HOTSPOTS.pantry, label: '펜트리' },
 ] as const
@@ -35,8 +37,24 @@ const bannerInsetStyle = {
 const pinkBlockFlex = HOME_BANNER_TOP_FLEX + HOME_BANNER_BOTTOM_PINK_FLEX
 
 export function HomePage() {
-  const { ingredients } = useIngredients()
+  const { ingredients, updateIngredient, deleteIngredient, moveIngredient } = useIngredients()
   const expiring = sortByExpiry(getExpiringSoon(ingredients, 3))
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<Ingredient | undefined>()
+
+  const handleSubmit = async (data: {
+    name: string
+    quantity: number
+    unit: string
+    location: Ingredient['location']
+    expiryDate?: string
+    shelfLevel?: number
+    imageUrl?: string
+  }) => {
+    if (!editing) return
+    await updateIngredient(editing.id, data)
+    setEditing(undefined)
+  }
 
   return (
     <div className="flex h-full w-full flex-col bg-white">
@@ -77,9 +95,14 @@ export function HomePage() {
             >
               <div className="flex w-max min-w-full gap-2.5 [justify-content:safe_center]">
                 {expiring.map((ing) => (
-                  <Link key={ing.id} to={getIngredientRoute(ing)} className="shrink-0 active:opacity-90">
-                    <IngredientCard ingredient={ing} banner asDiv />
-                  </Link>
+                  <ExpiringIngredientCard
+                    key={ing.id}
+                    ingredient={ing}
+                    onLongPress={(item) => {
+                      setEditing(item)
+                      setFormOpen(true)
+                    }}
+                  />
                 ))}
               </div>
             </div>
@@ -122,6 +145,21 @@ export function HomePage() {
           style={homeRectStyle(HOME_HOTSPOTS.recipe)}
         />
       </div>
+
+      {editing && (
+        <IngredientForm
+          open={formOpen}
+          onClose={() => {
+            setFormOpen(false)
+            setEditing(undefined)
+          }}
+          onSubmit={handleSubmit}
+          onDelete={() => deleteIngredient(editing.id)}
+          onMove={(loc) => moveIngredient(editing.id, loc)}
+          initial={editing}
+          defaultLocation={editing.location}
+        />
+      )}
     </div>
   )
 }
