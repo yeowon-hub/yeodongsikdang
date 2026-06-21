@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Camera, Loader2, Sparkles, X } from 'lucide-react'
 import { compressImageToDataUrl } from '@/lib/image'
 import {
@@ -238,7 +239,7 @@ export function IngredientForm({
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/40 sm:items-center sm:justify-center sm:p-4"
       role="dialog"
@@ -548,6 +549,7 @@ export function IngredientForm({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
