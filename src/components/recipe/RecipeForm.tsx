@@ -216,6 +216,8 @@ export function RecipeForm({ open, onClose, onSubmit, initial }: RecipeFormProps
 
   return (
 
+    <>
+
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40">
 
       <div className="mx-auto min-h-full max-w-lg bg-white p-6">
@@ -663,6 +665,12 @@ export function RecipeForm({ open, onClose, onSubmit, initial }: RecipeFormProps
       </div>
 
     </div>
+
+    {ingredientDrag.previewPortal}
+
+    {stepDrag.previewPortal}
+
+    </>
 
   )
 

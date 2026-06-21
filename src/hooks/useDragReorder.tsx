@@ -1,4 +1,5 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 
 const DRAG_THRESHOLD_PX = 6
 
@@ -12,10 +13,55 @@ export function reorderArray<T>(list: T[], from: number, to: number): T[] {
   return next
 }
 
+interface GhostPosition {
+  top: number
+  left: number
+  width: number
+  grabOffsetY: number
+}
+
+function DragGhost({
+  position,
+  cloneRef,
+}: {
+  position: GhostPosition
+  cloneRef: RefObject<HTMLElement | null>
+}) {
+  const hostRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const host = hostRef.current
+    const clone = cloneRef.current
+    if (!host || !clone) return
+    if (clone.parentElement !== host) {
+      host.replaceChildren(clone)
+    }
+  }, [cloneRef, position.left, position.width])
+
+  return createPortal(
+    <div
+      className="pointer-events-none z-[110]"
+      style={{
+        position: 'fixed',
+        top: position.top,
+        left: position.left,
+        width: position.width,
+      }}
+    >
+      <div className="relative overflow-hidden rounded-xl shadow-lg ring-2 ring-header/40">
+        <div ref={hostRef} />
+        <div className="absolute inset-0 rounded-xl bg-header/15" aria-hidden />
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
 export function useDragReorder<T>(items: T[], onReorder: (items: T[]) => void) {
   const containerRef = useRef<HTMLDivElement>(null)
   const itemsRef = useRef(items)
   const onReorderRef = useRef(onReorder)
+  const ghostCloneRef = useRef<HTMLElement | null>(null)
   itemsRef.current = items
   onReorderRef.current = onReorder
 
@@ -28,6 +74,14 @@ export function useDragReorder<T>(items: T[], onReorder: (items: T[]) => void) {
 
   const [dragFrom, setDragFrom] = useState<number | null>(null)
   const [dragOver, setDragOver] = useState<number | null>(null)
+  const [ghostPosition, setGhostPosition] = useState<GhostPosition | null>(null)
+
+  const clearDragVisuals = useCallback(() => {
+    setDragFrom(null)
+    setDragOver(null)
+    setGhostPosition(null)
+    ghostCloneRef.current = null
+  }, [])
 
   const getIndexAtY = useCallback((clientY: number) => {
     const container = containerRef.current
@@ -38,6 +92,23 @@ export function useDragReorder<T>(items: T[], onReorder: (items: T[]) => void) {
       if (clientY < rect.top + rect.height / 2) return i
     }
     return Math.max(0, rows.length - 1)
+  }, [])
+
+  const startDragVisuals = useCallback((index: number, clientY: number) => {
+    const container = containerRef.current
+    if (!container) return
+    const row = container.querySelectorAll('[data-reorder-item]')[index] as HTMLElement | undefined
+    if (!row) return
+
+    const rect = row.getBoundingClientRect()
+    ghostCloneRef.current = row.cloneNode(true) as HTMLElement
+    setDragFrom(index)
+    setGhostPosition({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      grabOffsetY: clientY - rect.top,
+    })
   }, [])
 
   const bindHandle = useCallback(
@@ -59,10 +130,18 @@ export function useDragReorder<T>(items: T[], onReorder: (items: T[]) => void) {
           if (!drag.dragging) {
             if (Math.abs(ev.clientY - drag.startY) < DRAG_THRESHOLD_PX) return
             drag.dragging = true
-            setDragFrom(index)
+            startDragVisuals(index, ev.clientY)
           }
 
           ev.preventDefault()
+          setGhostPosition((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  top: ev.clientY - prev.grabOffsetY,
+                }
+              : null,
+          )
           setDragOver(getIndexAtY(ev.clientY))
         }
 
@@ -72,15 +151,16 @@ export function useDragReorder<T>(items: T[], onReorder: (items: T[]) => void) {
 
           drag.cleanup()
           dragRef.current = null
-          setDragFrom(null)
-          setDragOver(null)
 
-          if (drag.dragging) {
+          const didDrag = drag.dragging
+          if (didDrag) {
             const toIndex = getIndexAtY(ev.clientY)
             if (toIndex !== drag.fromIndex) {
               onReorderRef.current(reorderArray(itemsRef.current, drag.fromIndex, toIndex))
             }
           }
+
+          clearDragVisuals()
         }
 
         const cleanup = () => {
@@ -107,20 +187,32 @@ export function useDragReorder<T>(items: T[], onReorder: (items: T[]) => void) {
         window.addEventListener('pointercancel', onEnd)
       },
     }),
-    [getIndexAtY],
+    [clearDragVisuals, getIndexAtY, startDragVisuals],
   )
 
   const getItemClassName = useCallback(
     (index: number, base: string) => {
       let cls = base
-      if (dragFrom === index) cls += ' opacity-70 shadow-md ring-2 ring-header/40'
-      if (dragOver === index && dragFrom !== null && dragFrom !== index) {
-        cls += ' border-header bg-header/5'
+      if (dragFrom === index) {
+        cls += ' opacity-0'
+      } else if (dragOver === index && dragFrom !== null) {
+        cls += ' border-header bg-header/5 ring-1 ring-header/25'
       }
       return cls
     },
     [dragFrom, dragOver],
   )
 
-  return { containerRef, bindHandle, getItemClassName, isDragging: dragFrom !== null }
+  const previewPortal =
+    ghostPosition && ghostCloneRef.current ? (
+      <DragGhost position={ghostPosition} cloneRef={ghostCloneRef} />
+    ) : null
+
+  return {
+    containerRef,
+    bindHandle,
+    getItemClassName,
+    isDragging: dragFrom !== null,
+    previewPortal,
+  }
 }
