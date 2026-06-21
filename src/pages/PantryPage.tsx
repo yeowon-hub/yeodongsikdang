@@ -25,6 +25,13 @@ export function PantryPage() {
     setEditing(undefined)
   }
 
+  const handleBatchSubmit = async (items: Parameters<typeof addIngredient>[0][]) => {
+    for (const item of items) {
+      await addIngredient(item)
+    }
+    setEditing(undefined)
+  }
+
   return (
     <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <DryStorageView
@@ -61,6 +68,7 @@ export function PantryPage() {
           setEditing(undefined)
         }}
         onSubmit={handleSubmit}
+        onSubmitBatch={handleBatchSubmit}
         onDelete={editing ? () => deleteIngredient(editing.id) : undefined}
         onMove={editing ? (loc) => moveIngredient(editing.id, loc) : undefined}
         initial={editing}

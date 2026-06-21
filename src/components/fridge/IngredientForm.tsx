@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Camera, X } from 'lucide-react'
+import { Camera, Loader2, Sparkles, X } from 'lucide-react'
 import { compressImageToDataUrl } from '@/lib/image'
+import {
+  analyzeIngredientImage,
+  attachProductImages,
+  prepareImageForVision,
+} from '@/lib/ingredientVision'
+import type { DetectedIngredient } from '@/lib/ingredientVisionCore'
 import type { Ingredient, StorageLocation } from '@/types'
 import {
   ALL_STORAGE_LOCATIONS,
@@ -25,18 +31,21 @@ function initUnitState(unit: string) {
   return { select: CUSTOM_UNIT_VALUE, custom: unit }
 }
 
+interface IngredientSubmitData {
+  name: string
+  quantity: number
+  unit: string
+  location: StorageLocation
+  expiryDate?: string
+  shelfLevel?: number
+  imageUrl?: string
+}
+
 interface IngredientFormProps {
   open: boolean
   onClose: () => void
-  onSubmit: (data: {
-    name: string
-    quantity: number
-    unit: string
-    location: StorageLocation
-    expiryDate?: string
-    shelfLevel?: number
-    imageUrl?: string
-  }) => void
+  onSubmit: (data: IngredientSubmitData) => void
+  onSubmitBatch?: (items: IngredientSubmitData[]) => void | Promise<void>
   onDelete?: () => void
   onMove?: (location: StorageLocation) => void
   initial?: Ingredient
@@ -47,6 +56,7 @@ export function IngredientForm({
   open,
   onClose,
   onSubmit,
+  onSubmitBatch,
   onDelete,
   onMove,
   initial,
@@ -60,6 +70,11 @@ export function IngredientForm({
   const [shelfLevel, setShelfLevel] = useState(0)
   const [imageUrl, setImageUrl] = useState<string | undefined>()
   const [imageError, setImageError] = useState('')
+  const [analyzing, setAnalyzing] = useState(false)
+  const [detectedBatch, setDetectedBatch] = useState<
+    Array<DetectedIngredient & { imageUrl?: string }> | null
+  >(null)
+  const [sourceImageUrl, setSourceImageUrl] = useState<string | undefined>()
   const [modalMaxH, setModalMaxH] = useState<number | undefined>()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -82,8 +97,11 @@ export function IngredientForm({
       setExpiryDate('')
       setShelfLevel(0)
       setImageUrl(undefined)
+      setDetectedBatch(null)
+      setSourceImageUrl(undefined)
     }
     setImageError('')
+    setAnalyzing(false)
   }, [initial, open])
 
   useEffect(() => {
@@ -145,6 +163,59 @@ export function IngredientForm({
     onClose()
   }
 
+  const applyDetectedItem = (item: DetectedIngredient & { imageUrl?: string }) => {
+    setName(item.name)
+    setQuantityInput(String(item.quantity))
+    const unitState = initUnitState(item.unit)
+    setUnitSelect(unitState.select)
+    setCustomUnit(unitState.custom)
+    setExpiryDate(item.expiryDate ?? '')
+    if (item.imageUrl) setImageUrl(item.imageUrl)
+  }
+
+  const runVisionAnalysis = async (dataUrl: string) => {
+    setAnalyzing(true)
+    setImageError('')
+    setDetectedBatch(null)
+    try {
+      const detected = await analyzeIngredientImage(dataUrl)
+      if (detected.length === 0) {
+        setImageError('재료를 찾지 못했어요. 직접 입력해 주세요.')
+        return
+      }
+
+      const withImages = await attachProductImages(dataUrl, detected)
+
+      if (withImages.length === 1) {
+        applyDetectedItem(withImages[0])
+        return
+      }
+
+      setDetectedBatch(withImages)
+    } catch (e) {
+      setImageError(e instanceof Error ? e.message : '이미지 분석에 실패했어요')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  const handleBatchAdd = async () => {
+    if (!detectedBatch?.length || !onSubmitBatch) return
+    const location = defaultLocation
+    await onSubmitBatch(
+      detectedBatch.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        location,
+        expiryDate: item.expiryDate,
+        shelfLevel: showShelfLevel ? shelfLevel : undefined,
+        imageUrl: item.imageUrl,
+      })),
+    )
+    onClose()
+  }
+
   const handleImagePick = async (file: File | undefined) => {
     if (!file) return
     if (!file.type.startsWith('image/')) {
@@ -153,8 +224,15 @@ export function IngredientForm({
     }
     try {
       setImageError('')
-      const dataUrl = await compressImageToDataUrl(file)
-      setImageUrl(dataUrl)
+      setDetectedBatch(null)
+      const visionUrl = await prepareImageForVision(file)
+      const displayUrl = await compressImageToDataUrl(file)
+      setSourceImageUrl(visionUrl)
+      setImageUrl(displayUrl)
+
+      if (!initial) {
+        await runVisionAnalysis(visionUrl)
+      }
     } catch {
       setImageError('사진을 불러오지 못했어요')
     }
@@ -223,6 +301,11 @@ export function IngredientForm({
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">사진 (선택)</label>
+                {!initial && (
+                  <p className="mb-2 text-xs text-gray-500">
+                    제품·장바구니 캡처를 올리면 이름·수량·사진을 자동으로 채워요
+                  </p>
+                )}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -241,14 +324,34 @@ export function IngredientForm({
                       alt="재료 사진"
                       className="h-36 w-full rounded-xl object-cover"
                     />
+                    {analyzing && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl bg-black/45 text-white">
+                        <Loader2 size={24} className="animate-spin" />
+                        <span className="text-xs font-medium">재료 분석 중...</span>
+                      </div>
+                    )}
                     <button
                       type="button"
-                      onClick={() => setImageUrl(undefined)}
+                      onClick={() => {
+                        setImageUrl(undefined)
+                        setSourceImageUrl(undefined)
+                        setDetectedBatch(null)
+                      }}
                       className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white"
                       aria-label="사진 삭제"
                     >
                       <X size={14} />
                     </button>
+                    {!initial && sourceImageUrl && !analyzing && (
+                      <button
+                        type="button"
+                        onClick={() => void runVisionAnalysis(sourceImageUrl)}
+                        className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-header px-2.5 py-1 text-[11px] font-semibold text-header-text shadow"
+                      >
+                        <Sparkles size={12} />
+                        다시 분석
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <button
@@ -258,10 +361,62 @@ export function IngredientForm({
                   >
                     <Camera size={28} />
                     <span className="text-sm">사진 추가하기</span>
+                    {!initial && (
+                      <span className="text-[11px] text-gray-400">장바구니 캡처도 OK</span>
+                    )}
                   </button>
                 )}
                 {imageError && <p className="mt-1 text-xs text-red-500">{imageError}</p>}
               </div>
+
+              {detectedBatch && detectedBatch.length > 1 && onSubmitBatch && (
+                <div className="rounded-xl border border-header/30 bg-header/10 p-3">
+                  <p className="mb-2 text-sm font-semibold text-gray-800">
+                    {detectedBatch.length}개 재료를 찾았어요
+                  </p>
+                  <ul className="mb-3 max-h-48 space-y-2 overflow-y-auto">
+                    {detectedBatch.map((item, i) => (
+                      <li
+                        key={`${item.name}-${i}`}
+                        className="flex items-center gap-2 rounded-lg bg-white/80 p-2"
+                      >
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt=""
+                            className="h-10 w-10 shrink-0 rounded-md object-cover"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-gray-800">{item.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {item.quantity}
+                            {item.unit}
+                            {item.expiryDate ? ` · ${item.expiryDate}` : ''}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            applyDetectedItem(item)
+                            setDetectedBatch(null)
+                          }}
+                          className="shrink-0 text-xs font-medium text-header-dark"
+                        >
+                          선택
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    onClick={() => void handleBatchAdd()}
+                    className="w-full rounded-xl bg-header py-2.5 text-sm font-semibold text-header-text hover:bg-header-dark"
+                  >
+                    {detectedBatch.length}개 한꺼번에 추가
+                  </button>
+                </div>
+              )}
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">재료 이름</label>

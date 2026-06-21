@@ -70,6 +70,13 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
     setEditing(undefined)
   }
 
+  const handleBatchSubmit = async (items: Parameters<typeof addIngredient>[0][]) => {
+    for (const item of items) {
+      await addIngredient(item)
+    }
+    setEditing(undefined)
+  }
+
   const defaultAddLocation: ColdStorageLocation =
     activeCompartment === 0 ? freezerLoc : fridgeLoc
 
@@ -128,6 +135,7 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
           setEditing(undefined)
         }}
         onSubmit={handleSubmit}
+        onSubmitBatch={handleBatchSubmit}
         onDelete={editing ? () => deleteIngredient(editing.id) : undefined}
         onMove={editing ? (loc) => moveIngredient(editing.id, loc) : undefined}
         initial={editing}
