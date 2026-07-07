@@ -235,4 +235,32 @@ grant execute on function public.create_household(text) to authenticated;
 grant execute on function public.join_household(text) to authenticated;
 grant execute on function public.get_my_household() to authenticated;
 
+alter table public.ingredients replica identity full;
+alter table public.recipes replica identity full;
+
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    if not exists (
+      select 1
+      from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = 'ingredients'
+    ) then
+      alter publication supabase_realtime add table public.ingredients;
+    end if;
+
+    if not exists (
+      select 1
+      from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = 'recipes'
+    ) then
+      alter publication supabase_realtime add table public.recipes;
+    end if;
+  end if;
+end $$;
+
 NOTIFY pgrst, 'reload schema';
