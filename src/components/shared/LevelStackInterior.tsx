@@ -28,7 +28,7 @@ interface LevelStackInteriorProps {
   dividerVariant?: 'metal' | 'wood'
 }
 
-const ROW_HEIGHT_PX = 70
+const ROW_MIN_HEIGHT_PX = 70
 const DRAG_THRESHOLD_PX = 12
 
 export function LevelStackInterior({
@@ -203,13 +203,13 @@ export function LevelStackInterior({
             </div>
             <div
               data-inner-swipe
-              className="mx-2 shrink-0 overflow-x-auto overflow-y-hidden px-1 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{ height: ROW_HEIGHT_PX }}
+              className="mx-2 shrink-0 overflow-x-hidden overflow-y-visible px-1 py-0.5"
+              style={{ minHeight: ROW_MIN_HEIGHT_PX }}
             >
               {items.length === 0 ? (
                 <p className="flex h-full items-center text-[11px] text-gray-400">비어있음</p>
               ) : (
-                <div className="flex h-full flex-nowrap items-center gap-1.5">
+                <div className="flex min-h-full flex-wrap content-start items-start gap-1.5">
                   {items.map((item) => (
                     <div
                       key={item.id}

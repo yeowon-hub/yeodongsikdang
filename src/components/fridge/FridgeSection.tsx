@@ -70,11 +70,11 @@ export function FridgeSection({
               </span>
             </div>
 
-            <div className="relative z-10 min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-1.5 pb-0.5 pt-0.5">
+            <div className="relative z-10 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1.5 pb-0.5 pt-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {items.length === 0 ? (
                 <p className="py-0.5 text-[9px] leading-none text-gray-400">비어있음</p>
               ) : (
-                <div className="flex h-full items-start gap-1">
+                <div className="flex min-h-full flex-wrap content-start items-start gap-1">
                   {items.map((item) => (
                     <IngredientCard
                       key={item.id}

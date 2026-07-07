@@ -9,7 +9,7 @@ import { CATEGORIES } from '@/types'
 type Tab = 'recommend' | 'my' | 'all'
 
 export function RecipesPage() {
-  const [tab, setTab] = useState<Tab>('recommend')
+  const [tab, setTab] = useState<Tab>('my')
   const [categoryFilter, setCategoryFilter] = useState<string>('전체')
   const { recipes, myRecipes, builtinRecipes } = useRecipes()
   const { ingredients } = useIngredients()
@@ -25,8 +25,8 @@ export function RecipesPage() {
       : builtinRecipes.filter((r) => r.category === categoryFilter)
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'recommend', label: '추천' },
     { id: 'my', label: '내 레시피' },
+    { id: 'recommend', label: '추천' },
     { id: 'all', label: '전체' },
   ]
 

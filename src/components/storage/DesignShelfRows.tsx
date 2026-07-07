@@ -29,17 +29,17 @@ export function DesignShelfRows({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
       {grouped.map(({ level, items }) => (
-        <div key={level} className="flex min-h-0 flex-1 flex-col">
+        <div key={level} className="flex shrink-0 flex-col">
           <div
             data-inner-swipe
-            className="flex min-h-0 flex-1 items-center overflow-x-auto px-2 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex min-h-[70px] items-start overflow-x-hidden px-2 py-1"
           >
             {items.length === 0 ? (
               <span className="px-1 text-[10px] text-gray-500/70">비어있음</span>
             ) : (
-              <div className="flex flex-nowrap items-start gap-1.5">
+              <div className="flex flex-wrap content-start items-start gap-1.5">
                 {items.map((item) => (
                   <IngredientCard
                     key={item.id}
