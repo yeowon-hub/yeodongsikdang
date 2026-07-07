@@ -186,6 +186,46 @@ as $$
   ) sub;
 $$;
 
+create or replace function public.list_household_members()
+returns json
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with current_household as (
+    select hm.household_id
+    from public.household_members hm
+    where hm.user_id = auth.uid()
+    order by hm.joined_at asc
+    limit 1
+  )
+  select coalesce(
+    json_agg(
+      json_build_object(
+        'id', hm.user_id,
+        'name', coalesce(
+          nullif(u.raw_user_meta_data ->> 'nickname', ''),
+          nullif(u.raw_user_meta_data ->> 'name', ''),
+          nullif(u.raw_user_meta_data ->> 'full_name', ''),
+          nullif(u.raw_user_meta_data ->> 'preferred_username', ''),
+          nullif(split_part(u.email, '@', 1), ''),
+          '구성원'
+        ),
+        'email', coalesce(u.email, ''),
+        'role', hm.role,
+        'joined_at', hm.joined_at
+      )
+      order by hm.joined_at asc
+    ),
+    '[]'::json
+  )
+  from public.household_members hm
+  join current_household ch on ch.household_id = hm.household_id
+  join auth.users u on u.id = hm.user_id
+  where public.is_household_member(hm.household_id);
+$$;
+
 alter table public.households enable row level security;
 alter table public.household_members enable row level security;
 
@@ -234,6 +274,7 @@ create policy "Household members manage recipes"
 grant execute on function public.create_household(text) to authenticated;
 grant execute on function public.join_household(text) to authenticated;
 grant execute on function public.get_my_household() to authenticated;
+grant execute on function public.list_household_members() to authenticated;
 
 alter table public.ingredients replica identity full;
 alter table public.recipes replica identity full;

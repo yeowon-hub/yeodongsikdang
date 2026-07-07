@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useSync'
 import { HouseholdPanel } from '@/components/auth/HouseholdPanel'
-import { LogIn, Mail, Lock } from 'lucide-react'
+import { LogIn, Mail, Lock, Users } from 'lucide-react'
 
 export function AuthForm() {
   const { user, signIn, signUp, signInWithKakao, signOut, isConfigured } = useAuth()
@@ -43,10 +44,17 @@ export function AuthForm() {
           <p className="mt-4 text-xs text-green-600">
             아래에서 가족을 설정하면 여러 기기에서 재료·레시피가 공유됩니다
           </p>
+          <Link
+            to="/account/members"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-header/10 py-3 text-sm font-semibold text-header-text hover:bg-header/20"
+          >
+            <Users size={18} />
+            구성원 정보
+          </Link>
           <button
             type="button"
             onClick={() => signOut()}
-            className="mt-6 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600"
+            className="mt-3 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600"
           >
             로그아웃
           </button>
