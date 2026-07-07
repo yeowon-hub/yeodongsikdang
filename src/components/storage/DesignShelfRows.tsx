@@ -34,12 +34,12 @@ export function DesignShelfRows({
         <div key={level} className="flex shrink-0 flex-col">
           <div
             data-inner-swipe
-            className="flex min-h-[70px] items-start overflow-x-hidden px-2 py-1"
+            className="flex min-h-[70px] min-w-0 items-start overflow-x-hidden px-2 py-1"
           >
             {items.length === 0 ? (
               <span className="px-1 text-[10px] text-gray-500/70">비어있음</span>
             ) : (
-              <div className="flex flex-wrap content-start items-start gap-1.5">
+              <div className="flex w-full min-w-0 flex-wrap content-start items-start gap-1.5">
                 {items.map((item) => (
                   <IngredientCard
                     key={item.id}
