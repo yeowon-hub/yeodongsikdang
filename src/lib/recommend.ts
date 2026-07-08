@@ -4,14 +4,60 @@ function normalizeName(name: string) {
   return name.trim().toLowerCase().replace(/\s+/g, '')
 }
 
-function hasIngredient(available: Set<string>, required: string) {
+const SUBSTITUTE_GROUPS = [
+  ['닭고기', '닭가슴살', '닭다리살', '닭안심', '닭'],
+  ['돼지고기', '삼겹살', '목살', '앞다리살', '뒷다리살', '다짐육'],
+  ['소고기', '쇠고기', '불고기용소고기', '차돌박이', '양지'],
+  ['김치', '배추김치', '묵은지', '신김치'],
+  ['대파', '쪽파', '실파'],
+  ['양파', '적양파'],
+  ['감자', '고구마'],
+  ['애호박', '주키니', '호박'],
+  ['버섯', '표고버섯', '느타리버섯', '양송이버섯', '새송이버섯', '팽이버섯'],
+  ['상추', '양상추', '깻잎', '샐러드채소', '채소'],
+  ['토마토', '방울토마토'],
+  ['오이', '피클'],
+  ['두부', '순두부', '연두부'],
+  ['계란', '달걀'],
+  ['참치', '참치캔'],
+  ['어묵', '오뎅'],
+  ['라면', '우동면', '칼국수면', '소면', '국수', '파스타면', '스파게티면'],
+  ['떡', '떡국떡', '떡볶이떡'],
+  ['밥', '즉석밥', '찬밥'],
+  ['고추장', '쌈장'],
+  ['된장', '쌈장'],
+  ['간장', '국간장', '진간장', '양조간장'],
+  ['고춧가루', '청양고추', '고추'],
+  ['마늘', '다진마늘'],
+  ['치즈', '슬라이스치즈', '모짜렐라치즈'],
+  ['우유', '생크림', '두유'],
+].map((group) => group.map(normalizeName))
+
+function getSubstitutes(name: string) {
+  const normalized = normalizeName(name)
+  const group = SUBSTITUTE_GROUPS.find((items) =>
+    items.some((item) => item === normalized || item.includes(normalized) || normalized.includes(item)),
+  )
+  return group ?? [normalized]
+}
+
+function findMatchingIngredient(available: Set<string>, required: string) {
   const normalized = normalizeName(required)
   if (available.has(normalized)) return true
 
-  for (const item of available) {
-    if (item.includes(normalized) || normalized.includes(item)) return true
+  const candidates = getSubstitutes(required)
+  for (const candidate of candidates) {
+    for (const item of available) {
+      if (item === candidate || item.includes(candidate) || candidate.includes(item)) {
+        return item
+      }
+    }
   }
-  return false
+  return null
+}
+
+function hasIngredient(available: Set<string>, required: string) {
+  return Boolean(findMatchingIngredient(available, required))
 }
 
 export function getAvailableNames(ingredients: Ingredient[]) {
