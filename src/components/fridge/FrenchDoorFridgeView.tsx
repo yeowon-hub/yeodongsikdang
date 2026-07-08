@@ -10,6 +10,7 @@ import { useIngredients } from '@/hooks/useIngredients'
 import type { ColdStorageLocation, FridgeUnitId, Ingredient } from '@/types'
 import { FRIDGE_UNITS } from '@/types'
 import { parseCompartmentIndex, parseLevelIndex } from '@/lib/navigation'
+import { requestIngredientRecipes } from '@/lib/ingredientActions'
 
 interface FrenchDoorFridgeViewProps {
   unitId: FridgeUnitId
@@ -95,6 +96,7 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
                 setEditing(ing)
                 setFormOpen(true)
               }}
+              onIngredientLongPress={(ing) => requestIngredientRecipes(ing.id)}
               onIngredientMoveToLevel={(id, level) => moveIngredientToLevel(id, level)}
               theme={getFridgeUnitTheme(unitId)}
               levelLabel="단"

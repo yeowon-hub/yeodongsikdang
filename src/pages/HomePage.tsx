@@ -5,6 +5,7 @@ import { ExpiringIngredientCard } from '@/components/home/ExpiringIngredientCard
 import { IngredientForm } from '@/components/fridge/IngredientForm'
 import { useSuppressGlobalAddFab } from '@/contexts/GlobalAddFabContext'
 import { getExpiringSoon } from '@/lib/recommend'
+import { requestIngredientRecipes } from '@/lib/ingredientActions'
 import { sortByExpiry } from '@/lib/sortIngredients'
 import { ASSETS } from '@/lib/assets'
 import {
@@ -100,10 +101,7 @@ export function HomePage() {
                   <ExpiringIngredientCard
                     key={ing.id}
                     ingredient={ing}
-                    onLongPress={(item) => {
-                      setEditing(item)
-                      setFormOpen(true)
-                    }}
+                    onLongPress={(item) => requestIngredientRecipes(item.id)}
                   />
                 ))}
               </div>

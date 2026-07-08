@@ -95,32 +95,26 @@ export function GlobalAddButton() {
 
       {step === 'kind' && (
         <AddPickerSheet title="무엇을 추가할까요?" onClose={closeAll}>
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setStep('recipe')}
-              className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
+              className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-gray-200 px-3 py-4 text-center hover:bg-gray-50 active:bg-gray-100"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
                 <BookOpen size={22} />
               </span>
-              <span>
-                <span className="block text-sm font-bold text-gray-800">레시피 추가</span>
-                <span className="block text-xs text-gray-500">나만의 레시피를 기록해요</span>
-              </span>
+              <span className="text-sm font-bold text-gray-800">레시피</span>
             </button>
             <button
               type="button"
               onClick={openIngredientForm}
-              className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
+              className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-gray-200 px-3 py-4 text-center hover:bg-gray-50 active:bg-gray-100"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
                 <ShoppingBasket size={22} />
               </span>
-              <span>
-                <span className="block text-sm font-bold text-gray-800">재료 추가</span>
-                <span className="block text-xs text-gray-500">냉장고·선반·펜트리에 보관해요</span>
-              </span>
+              <span className="text-sm font-bold text-gray-800">재료</span>
             </button>
           </div>
         </AddPickerSheet>

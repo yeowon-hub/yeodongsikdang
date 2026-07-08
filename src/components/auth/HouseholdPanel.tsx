@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Copy, Check, Users, Home, UserPlus } from 'lucide-react'
 import { useHousehold } from '@/contexts/HouseholdContext'
 
@@ -64,10 +65,13 @@ export function HouseholdPanel() {
                 {household.role === 'owner' ? '만든 사람' : '구성원'}
               </span>
             </div>
-            <div className="flex items-center justify-between">
+            <Link
+              to="/account/members"
+              className="flex items-center justify-between rounded-lg -mx-2 px-2 py-1 transition-colors hover:bg-white/45 active:scale-[0.99]"
+            >
               <span className="text-sm text-gray-500">구성원</span>
-              <span className="text-sm font-medium text-gray-800">{household.memberCount}명</span>
-            </div>
+              <span className="text-sm font-semibold text-header-text">{household.memberCount}명 보기</span>
+            </Link>
           </div>
 
           <div className="mt-4">

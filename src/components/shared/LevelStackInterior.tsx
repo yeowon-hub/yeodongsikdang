@@ -18,6 +18,7 @@ export interface LevelStackTopSelector {
 interface LevelStackInteriorProps {
   ingredients: Ingredient[]
   onIngredientClick: (ingredient: Ingredient) => void
+  onIngredientLongPress?: (ingredient: Ingredient) => void
   onIngredientMoveToLevel?: (ingredientId: string, level: number) => void
   theme: LevelStackTheme
   levelLabel: '칸' | '단'
@@ -28,12 +29,14 @@ interface LevelStackInteriorProps {
   dividerVariant?: 'metal' | 'wood'
 }
 
-const ROW_HEIGHT_PX = 70
+const ROW_MIN_HEIGHT_PX = 70
 const DRAG_THRESHOLD_PX = 12
+const LONG_PRESS_MS = 550
 
 export function LevelStackInterior({
   ingredients,
   onIngredientClick,
+  onIngredientLongPress,
   onIngredientMoveToLevel,
   theme,
   levelLabel,
@@ -51,6 +54,8 @@ export function LevelStackInterior({
     startX: number
     startY: number
     dragging: boolean
+    longPressed: boolean
+    longPressTimer?: ReturnType<typeof setTimeout>
   } | null>(null)
 
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -92,6 +97,7 @@ export function LevelStackInterior({
     dragRef.current = null
     setDraggingId(null)
     setDropLevel(null)
+    if (drag?.longPressTimer) clearTimeout(drag.longPressTimer)
 
     if (!drag?.dragging || !onIngredientMoveToLevel) return
     const targetLevel = findLevelAtY(clientY) ?? drag.fromLevel
@@ -105,7 +111,7 @@ export function LevelStackInterior({
     item: Ingredient,
     level: number,
   ) => {
-    if (!onIngredientMoveToLevel) return
+    if (!onIngredientMoveToLevel && !onIngredientLongPress) return
     e.currentTarget.setPointerCapture(e.pointerId)
     dragRef.current = {
       id: item.id,
@@ -113,6 +119,14 @@ export function LevelStackInterior({
       startX: e.clientX,
       startY: e.clientY,
       dragging: false,
+      longPressed: false,
+    }
+    if (onIngredientLongPress) {
+      dragRef.current.longPressTimer = setTimeout(() => {
+        if (!dragRef.current || dragRef.current.dragging) return
+        dragRef.current.longPressed = true
+        onIngredientLongPress(item)
+      }, LONG_PRESS_MS)
     }
   }
 
@@ -123,6 +137,10 @@ export function LevelStackInterior({
     const dx = e.clientX - drag.startX
     const dy = e.clientY - drag.startY
     if (!drag.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+      if (drag.longPressTimer) {
+        clearTimeout(drag.longPressTimer)
+        drag.longPressTimer = undefined
+      }
       if (Math.abs(dy) > Math.abs(dx)) {
         drag.dragging = true
         setDraggingId(drag.id)
@@ -139,7 +157,12 @@ export function LevelStackInterior({
   const handlePointerUp = (e: React.PointerEvent, item: Ingredient) => {
     const drag = dragRef.current
     if (!drag) return
+    if (drag.longPressTimer) clearTimeout(drag.longPressTimer)
 
+    if (drag.longPressed) {
+      dragRef.current = null
+      return
+    }
     if (!drag.dragging) {
       dragRef.current = null
       onIngredientClick(item)
@@ -203,13 +226,13 @@ export function LevelStackInterior({
             </div>
             <div
               data-inner-swipe
-              className="mx-2 shrink-0 overflow-x-auto overflow-y-hidden px-1 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{ height: ROW_HEIGHT_PX }}
+              className="mx-2 min-w-0 shrink-0 overflow-x-hidden overflow-y-visible px-1 py-0.5"
+              style={{ minHeight: ROW_MIN_HEIGHT_PX }}
             >
               {items.length === 0 ? (
                 <p className="flex h-full items-center text-[11px] text-gray-400">비어있음</p>
               ) : (
-                <div className="flex h-full flex-nowrap items-center gap-1.5">
+                <div className="flex min-h-full w-full min-w-0 flex-wrap content-start items-start gap-1.5">
                   {items.map((item) => (
                     <div
                       key={item.id}
@@ -221,17 +244,22 @@ export function LevelStackInterior({
                         draggingId === item.id ? 'opacity-60' : ''
                       }`}
                       onPointerDown={
-                        onIngredientMoveToLevel
+                        onIngredientMoveToLevel || onIngredientLongPress
                           ? (e) => handlePointerDown(e, item, level)
                           : undefined
                       }
-                      onPointerMove={onIngredientMoveToLevel ? handlePointerMove : undefined}
+                      onPointerMove={
+                        onIngredientMoveToLevel || onIngredientLongPress ? handlePointerMove : undefined
+                      }
                       onPointerUp={
-                        onIngredientMoveToLevel ? (e) => handlePointerUp(e, item) : undefined
+                        onIngredientMoveToLevel || onIngredientLongPress
+                          ? (e) => handlePointerUp(e, item)
+                          : undefined
                       }
                       onPointerCancel={
-                        onIngredientMoveToLevel
+                        onIngredientMoveToLevel || onIngredientLongPress
                           ? (e) => {
+                              if (dragRef.current?.longPressTimer) clearTimeout(dragRef.current.longPressTimer)
                               if (dragRef.current?.dragging) finishDrag(e.clientY)
                               else dragRef.current = null
                             }

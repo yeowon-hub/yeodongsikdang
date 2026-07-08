@@ -184,6 +184,14 @@ export interface Household {
   memberCount: number
 }
 
+export interface HouseholdMember {
+  id: string
+  name: string
+  email: string
+  role: HouseholdRole
+  joinedAt: string
+}
+
 /** 예전 location 값 → 새 구조 */
 export const LEGACY_LOCATION_MAP: Record<string, StorageLocation> = {
   fridge: 'general_fridge',

@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useSync'
 import { HouseholdPanel } from '@/components/auth/HouseholdPanel'
-import { LogIn, Mail, Lock } from 'lucide-react'
+import { LogIn, Mail, Lock, Users } from 'lucide-react'
 
 export function AuthForm() {
   const { user, signIn, signUp, signInWithKakao, signOut, isConfigured } = useAuth()
@@ -43,10 +44,17 @@ export function AuthForm() {
           <p className="mt-4 text-xs text-green-600">
             아래에서 가족을 설정하면 여러 기기에서 재료·레시피가 공유됩니다
           </p>
+          <Link
+            to="/account/members"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-header/10 py-3 text-sm font-semibold text-header-text hover:bg-header/20"
+          >
+            <Users size={18} />
+            구성원 정보
+          </Link>
           <button
             type="button"
             onClick={() => signOut()}
-            className="mt-6 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600"
+            className="mt-3 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600"
           >
             로그아웃
           </button>
@@ -57,8 +65,12 @@ export function AuthForm() {
   }
 
   const formatAuthError = (message: string) => {
-    if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
-      return 'Supabase 서버에 연결하지 못했습니다. 인터넷 연결과 Supabase URL 설정을 확인해주세요.'
+    if (
+      message.includes('Failed to fetch') ||
+      message.includes('NetworkError') ||
+      message.includes('Load failed')
+    ) {
+      return 'Supabase 프로젝트에 연결하지 못했습니다. Vercel의 VITE_SUPABASE_URL이 활성 Supabase 프로젝트를 가리키는지, 프로젝트가 일시정지 또는 삭제되지 않았는지 확인해주세요. 카카오 로그인도 이 연결이 복구되어야 작동합니다.'
     }
     if (message.toLowerCase().includes('email rate limit exceeded')) {
       return '이메일 전송 횟수 제한에 걸렸습니다. 1시간 정도 기다린 뒤 다시 시도하거나, Supabase에서 이메일 확인(Confirm email)을 끄고 시도해주세요.'

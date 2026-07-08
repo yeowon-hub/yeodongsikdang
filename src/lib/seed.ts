@@ -6,12 +6,16 @@ const SEED_KEY = 'yeodongsikdang_seeded'
 
 export async function seedIfNeeded() {
   const alreadySeeded = localStorage.getItem(SEED_KEY)
-  const count = await db.recipes.filter((r) => r.isBuiltin).count()
-
-  if (alreadySeeded && count > 0) return
+  const builtinRecipes = await db.recipes.filter((r) => r.isBuiltin).toArray()
+  const existingIds = new Set(builtinRecipes.map((r) => r.id))
+  const missingSeedRecipes = seedRecipes.filter((r) => !existingIds.has(r.id))
 
   const now = new Date().toISOString()
-  const recipes: Recipe[] = (seedRecipes as Omit<Recipe, 'createdAt' | 'updatedAt' | 'synced'>[]).map(
+  const sourceRecipes = alreadySeeded && builtinRecipes.length > 0 ? missingSeedRecipes : seedRecipes
+
+  if (sourceRecipes.length === 0) return
+
+  const recipes: Recipe[] = (sourceRecipes as Omit<Recipe, 'createdAt' | 'updatedAt' | 'synced'>[]).map(
     (r) => ({
       ...r,
       isBuiltin: true,
