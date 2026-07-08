@@ -96,6 +96,7 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
                 setFormOpen(true)
               }}
               onIngredientMoveToLevel={(id, level) => moveIngredientToLevel(id, level)}
+              onIngredientDelete={(id) => deleteIngredient(id)}
               theme={getFridgeUnitTheme(unitId)}
               levelLabel="단"
               topSelector={{

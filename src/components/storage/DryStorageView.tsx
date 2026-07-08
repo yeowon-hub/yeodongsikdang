@@ -13,6 +13,7 @@ interface DryStorageViewProps {
   ingredients: Ingredient[]
   onIngredientClick: (ingredient: Ingredient) => void
   onIngredientMoveToLevel?: (ingredientId: string, level: number) => void
+  onIngredientDelete?: (ingredientId: string) => void
   focusLevel?: number
   focusIngredientId?: string
   emptyMessage: string
@@ -23,6 +24,7 @@ export function DryStorageView({
   ingredients,
   onIngredientClick,
   onIngredientMoveToLevel,
+  onIngredientDelete,
   focusLevel,
   focusIngredientId,
   emptyMessage,
@@ -41,6 +43,7 @@ export function DryStorageView({
             ingredients={ingredients}
             onIngredientClick={onIngredientClick}
             onIngredientMoveToLevel={onIngredientMoveToLevel}
+            onIngredientDelete={onIngredientDelete}
             theme={theme}
             levelLabel="칸"
             focusLevel={focusLevel}

@@ -217,7 +217,13 @@ export function IngredientForm({
 
       setDetectedBatch(withImages)
     } catch (e) {
-      setImageError(e instanceof Error ? e.message : '이미지 분석에 실패했어요')
+      const message =
+        e instanceof Error
+          ? e.message
+          : typeof e === 'string'
+            ? e
+            : '이미지 분석에 실패했어요'
+      setImageError(message)
     } finally {
       setAnalyzing(false)
     }

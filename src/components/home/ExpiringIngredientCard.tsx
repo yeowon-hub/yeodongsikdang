@@ -1,11 +1,9 @@
-import { useRef } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Ingredient } from '@/types'
 import { IngredientCard } from '@/components/fridge/IngredientCard'
+import { useRecipeBubble } from '@/contexts/RecipeBubbleContext'
 import { getIngredientRoute } from '@/lib/navigation'
-
-const LONG_PRESS_MS = 500
-const MOVE_CANCEL_PX = 12
 
 interface ExpiringIngredientCardProps {
   ingredient: Ingredient
@@ -14,49 +12,28 @@ interface ExpiringIngredientCardProps {
 
 export function ExpiringIngredientCard({ ingredient, onLongPress }: ExpiringIngredientCardProps) {
   const navigate = useNavigate()
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const longPressedRef = useRef(false)
-  const startRef = useRef<{ x: number; y: number } | null>(null)
+  const { createStoragePointerHandlers, activeDrag } = useRecipeBubble()
 
-  const clearTimer = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
-  }
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    longPressedRef.current = false
-    startRef.current = { x: e.clientX, y: e.clientY }
-    clearTimer()
-    timerRef.current = setTimeout(() => {
-      longPressedRef.current = true
-      onLongPress(ingredient)
-    }, LONG_PRESS_MS)
-  }
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!startRef.current) return
-    const dx = Math.abs(e.clientX - startRef.current.x)
-    const dy = Math.abs(e.clientY - startRef.current.y)
-    if (dx > MOVE_CANCEL_PX || dy > MOVE_CANCEL_PX) clearTimer()
-  }
-
-  const handlePointerUp = () => {
-    clearTimer()
-    if (!longPressedRef.current) {
-      navigate(getIngredientRoute(ingredient))
-    }
-    startRef.current = null
-  }
+  const handlers = useMemo(
+    () =>
+      createStoragePointerHandlers(ingredient, {
+        onTap: () => navigate(getIngredientRoute(ingredient)),
+        onLongPress: () => onLongPress(ingredient),
+      }),
+    [createStoragePointerHandlers, ingredient, navigate, onLongPress],
+  )
 
   return (
     <div
-      className="shrink-0 select-none active:opacity-90"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={clearTimer}
+      className={`shrink-0 select-none touch-none active:opacity-90 ${
+        activeDrag?.ingredient.id === ingredient.id && activeDrag.source === 'storage'
+          ? 'opacity-40'
+          : ''
+      }`}
+      onPointerDown={handlers.onPointerDown}
+      onPointerMove={handlers.onPointerMove}
+      onPointerUp={handlers.onPointerUp}
+      onPointerCancel={handlers.onPointerCancel}
       onContextMenu={(e) => e.preventDefault()}
     >
       <IngredientCard ingredient={ingredient} banner asDiv />

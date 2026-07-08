@@ -14,10 +14,6 @@ function hasIngredient(available: Set<string>, required: string) {
   return false
 }
 
-export function getAvailableNames(ingredients: Ingredient[]) {
-  return new Set(ingredients.map((i) => normalizeName(i.name)))
-}
-
 export function matchRecipe(recipe: Recipe, available: Set<string>): RecipeMatch {
   const required = recipe.ingredients.filter((i) => !i.isOptional)
   const optional = recipe.ingredients.filter((i) => i.isOptional)
@@ -46,11 +42,44 @@ export function matchRecipe(recipe: Recipe, available: Set<string>): RecipeMatch
   }
 }
 
-export function recommendRecipes(recipes: Recipe[], ingredients: Ingredient[]): RecipeMatch[] {
-  const available = getAvailableNames(ingredients)
+export function getAvailableNames(ingredients: Ingredient[]) {
+  return new Set(ingredients.map((i) => normalizeName(i.name)))
+}
+
+/** 말풍선에 담긴 재료 이름이 레시피에 몇 개 매칭되는지 */
+export function countBubbleIngredientHits(recipe: Recipe, selected: Ingredient[]): number {
+  const selectedNames = selected.map((i) => normalizeName(i.name))
+  let hits = 0
+  for (const sel of selectedNames) {
+    const hit = recipe.ingredients.some((ri) => {
+      const rn = normalizeName(ri.name)
+      return rn.includes(sel) || sel.includes(rn)
+    })
+    if (hit) hits++
+  }
+  return hits
+}
+
+/** 말풍선에 담긴 재료를 레시피가 전부 포함하는지 */
+export function recipeIncludesAllBubbleIngredients(
+  recipe: Recipe,
+  selected: Ingredient[],
+): boolean {
+  if (selected.length === 0) return false
+  return countBubbleIngredientHits(recipe, selected) === selected.length
+}
+
+/** 말풍선 재료 전부를 사용하는 레시피만 추천 */
+export function recommendRecipesForSelection(
+  recipes: Recipe[],
+  selected: Ingredient[],
+): RecipeMatch[] {
+  if (selected.length === 0) return []
+
+  const selectedNames = getAvailableNames(selected)
   return recipes
-    .map((recipe) => matchRecipe(recipe, available))
-    .filter((m) => m.matchScore > 0)
+    .map((recipe) => matchRecipe(recipe, selectedNames))
+    .filter((m) => recipeIncludesAllBubbleIngredients(m.recipe, selected))
     .sort((a, b) => b.matchScore - a.matchScore)
 }
 

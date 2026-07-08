@@ -54,25 +54,6 @@ export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: Reci
         )}
       </div>
 
-      {match.matchScore > 0 && (
-        <div
-          className={`mt-4 rounded-xl p-3 text-sm ${
-            match.tier === 'ready'
-              ? 'bg-green-50 text-green-800'
-              : match.tier === 'almost'
-                ? 'bg-amber-50 text-amber-800'
-                : 'bg-gray-50 text-gray-700'
-          }`}
-        >
-          <p className="font-semibold">재료 매칭 {match.matchScore}%</p>
-          {match.missingIngredients.length > 0 && (
-            <p className="mt-1 text-xs">
-              부족: {match.missingIngredients.join(', ')}
-            </p>
-          )}
-        </div>
-      )}
-
       <section className="mt-6">
         <h3 className="mb-3 font-semibold text-gray-800">재료</h3>
         <ul className="space-y-2">

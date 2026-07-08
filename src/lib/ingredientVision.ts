@@ -7,6 +7,12 @@ function parseDataUrl(dataUrl: string): { mimeType: string; base64: string } {
   return { mimeType: match[1], base64: match[2] }
 }
 
+async function callDevClientFallback(base64: string, mimeType: string) {
+  const devKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined
+  if (!devKey) return null
+  return callOpenAiVision(devKey, base64, mimeType)
+}
+
 export async function analyzeIngredientImage(dataUrl: string): Promise<DetectedIngredient[]> {
   const { mimeType, base64 } = parseDataUrl(dataUrl)
 
@@ -22,20 +28,30 @@ export async function analyzeIngredientImage(dataUrl: string): Promise<DetectedI
       return data.items ?? []
     }
 
-    if (res.status !== 503 && res.status !== 404) {
-      const err = (await res.json().catch(() => ({}))) as { error?: string }
-      throw new Error(err.error ?? '이미지 분석에 실패했어요')
+    const err = (await res.json().catch(() => ({}))) as { error?: string }
+
+    if (res.status === 503 || res.status === 404) {
+      const fallback = await callDevClientFallback(base64, mimeType)
+      if (fallback) return fallback
+      throw new Error(
+        err.error ??
+          '이미지 자동 인식 API가 설정되지 않았어요. .env에 OPENAI_API_KEY를 추가하거나 Vercel 환경변수를 확인해 주세요.',
+      )
     }
+
+    throw new Error(err.error ?? `이미지 분석 API 오류 (${res.status})`)
   } catch (e) {
-    if (e instanceof Error && !e.message.includes('fetch')) throw e
-  }
+    if (e instanceof Error && !/fetch|network|failed to fetch/i.test(e.message)) {
+      throw e
+    }
 
-  const devKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined
-  if (devKey) {
-    return callOpenAiVision(devKey, base64, mimeType)
-  }
+    const fallback = await callDevClientFallback(base64, mimeType)
+    if (fallback) return fallback
 
-  throw new Error('이미지 자동 인식이 설정되지 않았어요. Vercel에 OPENAI_API_KEY를 추가해 주세요.')
+    throw new Error(
+      '이미지 분석 서버에 연결하지 못했어요. 개발 중이라면 .env에 OPENAI_API_KEY를 추가한 뒤 dev 서버를 다시 시작해 주세요.',
+    )
+  }
 }
 
 export async function prepareImageForVision(file: File): Promise<string> {

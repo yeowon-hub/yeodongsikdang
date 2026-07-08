@@ -5,10 +5,10 @@ import type { Recipe } from '@/types'
 interface RecipeCardProps {
   recipe: Recipe
   matchScore?: number
-  missingCount?: number
+  matchedCount?: number
 }
 
-export function RecipeCard({ recipe, matchScore, missingCount }: RecipeCardProps) {
+export function RecipeCard({ recipe, matchScore, matchedCount }: RecipeCardProps) {
   return (
     <Link
       to={`/recipes/${recipe.id}`}
@@ -17,15 +17,7 @@ export function RecipeCard({ recipe, matchScore, missingCount }: RecipeCardProps
       <p className="flex items-start justify-between gap-2">
         <span className="font-semibold text-gray-800">{recipe.title}</span>
         {matchScore !== undefined && (
-          <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
-              matchScore >= 70
-                ? 'bg-green-100 text-green-700'
-                : matchScore >= 40
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-gray-100 text-gray-600'
-            }`}
-          >
+          <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">
             {matchScore}%
           </span>
         )}
@@ -49,8 +41,8 @@ export function RecipeCard({ recipe, matchScore, missingCount }: RecipeCardProps
             {recipe.servings}인분
           </span>
         )}
-        {missingCount !== undefined && missingCount > 0 && (
-          <span className="text-amber-600">{missingCount}개 재료 부족</span>
+        {matchedCount !== undefined && matchedCount > 0 && (
+          <span className="text-green-600">재료 {matchedCount}개 매칭</span>
         )}
       </div>
       {recipe.isBuiltin && (

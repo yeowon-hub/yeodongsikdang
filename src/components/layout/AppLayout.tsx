@@ -5,8 +5,13 @@ import { GlobalSearch } from './GlobalSearch'
 import { HomeViewport } from './HomeViewport'
 import { SwipeableMainOutlet } from './SwipeableMainOutlet'
 import { GlobalAddFabProvider } from '@/contexts/GlobalAddFabContext'
+import { IngredientDragProvider } from '@/contexts/IngredientDragContext'
+import { RecipeBubbleProvider } from '@/contexts/RecipeBubbleContext'
+import { RecipeBubble } from '@/components/recipe/RecipeBubble'
+import { TrashDropBadge } from '@/components/shared/TrashDropBadge'
 import { useAuth } from '@/hooks/useSync'
 import { ASSETS } from '@/lib/assets'
+import { isMainTabPath } from '@/lib/mainTabs'
 import { User, LogIn } from 'lucide-react'
 
 const TAB_BAR_PADDING = 'calc(5.5rem + env(safe-area-inset-bottom, 0px))'
@@ -59,16 +64,19 @@ function AppHeader() {
 export function AppLayout() {
   const location = useLocation()
   const isHome = location.pathname === '/home'
+  const showRecipeBubble = isMainTabPath(location.pathname)
 
   return (
     <GlobalAddFabProvider>
+      <IngredientDragProvider>
+      <RecipeBubbleProvider>
       <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-white">
         <div
           className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-hidden"
           style={{ paddingBottom: TAB_BAR_PADDING }}
         >
           <AppHeader />
-          <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
             {isHome ? (
               <HomeViewport>
                 <SwipeableMainOutlet />
@@ -76,11 +84,15 @@ export function AppLayout() {
             ) : (
               <SwipeableMainOutlet />
             )}
+            {showRecipeBubble && <RecipeBubble />}
+            <TrashDropBadge />
           </main>
         </div>
         <BottomTabBar />
         <GlobalAddButton />
       </div>
+      </RecipeBubbleProvider>
+      </IngredientDragProvider>
     </GlobalAddFabProvider>
   )
 }

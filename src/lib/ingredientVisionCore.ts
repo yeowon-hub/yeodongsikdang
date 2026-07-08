@@ -23,53 +23,22 @@ export const INGREDIENT_VISION_PROMPT = `You analyze photos of grocery products 
 
 Extract EVERY distinct food/grocery product visible. For shopping cart screenshots with multiple line items, return one entry per product row.
 
-For each product provide:
-- name: Korean product name (concise, no brand fluff unless needed to identify)
-- quantity: numeric amount (default 1)
-- unit: one of ${UNITS.join(', ')} — pick the closest match
-- expiryDate: YYYY-MM-DD if visible on packaging, otherwise null
-- bbox: normalized crop region (0-1) of the product photo/thumbnail in the image. For a single product photo, bbox should tightly frame the product. For cart rows, bbox should frame that row's product image or the row area.
+Return JSON in this exact shape:
+{"items":[{"name":"두부","quantity":1,"unit":"개","expiryDate":null,"bbox":null}]}
 
-Ignore delivery fees, coupons, ads, and non-food items.
-Return JSON only.`
+Field rules:
+- name: Korean product name (concise)
+- quantity: number (default 1)
+- unit: one of ${UNITS.join(', ')}
+- expiryDate: YYYY-MM-DD string if visible, otherwise null
+- bbox: optional {left,top,right,bottom} normalized 0-1 crop of the product image, or null
 
-export const INGREDIENT_VISION_JSON_SCHEMA = {
-  type: 'object',
-  properties: {
-    items: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          name: { type: 'string' },
-          quantity: { type: 'number' },
-          unit: { type: 'string' },
-          expiryDate: { type: ['string', 'null'] },
-          bbox: {
-            type: ['object', 'null'],
-            properties: {
-              left: { type: 'number' },
-              top: { type: 'number' },
-              right: { type: 'number' },
-              bottom: { type: 'number' },
-            },
-            required: ['left', 'top', 'right', 'bottom'],
-            additionalProperties: false,
-          },
-        },
-        required: ['name', 'quantity', 'unit', 'expiryDate', 'bbox'],
-        additionalProperties: false,
-      },
-    },
-  },
-  required: ['items'],
-  additionalProperties: false,
-} as const
+Ignore delivery fees, coupons, ads, and non-food items.`
 
 export function normalizeDetectedItem(raw: {
-  name: string
-  quantity: number
-  unit: string
+  name?: string
+  quantity?: number | string
+  unit?: string
   expiryDate?: string | null
   bbox?: DetectedIngredientBBox | null
 }): DetectedIngredient | null {
@@ -129,6 +98,23 @@ export function parseVisionResponse(content: string): DetectedIngredient[] {
     .filter((item): item is DetectedIngredient => item !== null)
 }
 
+function formatOpenAiError(status: number, detail: string): string {
+  try {
+    const parsed = JSON.parse(detail) as { error?: { message?: string; code?: string } }
+    const message = parsed.error?.message
+    if (status === 401) {
+      return 'OpenAI API 키가 올바르지 않아요. OPENAI_API_KEY를 확인해 주세요.'
+    }
+    if (status === 429) {
+      return 'OpenAI 사용량 한도에 걸렸어요. 잠시 후 다시 시도해 주세요.'
+    }
+    if (message) return message
+  } catch {
+    /* ignore */
+  }
+  return `OpenAI Vision API 오류 (${status})`
+}
+
 export async function callOpenAiVision(
   apiKey: string,
   imageBase64: string,
@@ -149,26 +135,22 @@ export async function callOpenAiVision(
             { type: 'text', text: INGREDIENT_VISION_PROMPT },
             {
               type: 'image_url',
-              image_url: { url: `data:${mimeType};base64,${imageBase64}` },
+              image_url: {
+                url: `data:${mimeType};base64,${imageBase64}`,
+                detail: 'low',
+              },
             },
           ],
         },
       ],
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'ingredient_detection',
-          strict: true,
-          schema: INGREDIENT_VISION_JSON_SCHEMA,
-        },
-      },
+      response_format: { type: 'json_object' },
       max_tokens: 2000,
     }),
   })
 
   if (!response.ok) {
     const detail = await response.text()
-    throw new Error(`Vision API failed (${response.status}): ${detail.slice(0, 200)}`)
+    throw new Error(formatOpenAiError(response.status, detail))
   }
 
   const data = (await response.json()) as {
@@ -176,5 +158,10 @@ export async function callOpenAiVision(
   }
   const content = data.choices?.[0]?.message?.content
   if (!content) throw new Error('Vision API returned empty response')
-  return parseVisionResponse(content)
+
+  try {
+    return parseVisionResponse(content)
+  } catch {
+    throw new Error('Vision API 응답을 해석하지 못했어요. 다른 사진으로 다시 시도해 주세요.')
+  }
 }

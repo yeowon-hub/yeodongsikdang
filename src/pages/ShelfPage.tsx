@@ -43,6 +43,7 @@ export function ShelfPage() {
           setFormOpen(true)
         }}
         onIngredientMoveToLevel={(id, level) => moveIngredientToLevel(id, level)}
+        onIngredientDelete={(id) => deleteIngredient(id)}
         focusLevel={focusLevel}
         focusIngredientId={focusIngredientId}
         emptyMessage={'선반이 비어있어요.\n추가하기 버튼으로 재료를 추가해보세요!'}

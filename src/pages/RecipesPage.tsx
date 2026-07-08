@@ -1,23 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useRecipes } from '@/hooks/useRecipes'
-import { useIngredients } from '@/hooks/useIngredients'
-import { recommendRecipes } from '@/lib/recommend'
-import { RecommendList } from '@/components/recipe/RecommendList'
 import { RecipeCard } from '@/components/recipe/RecipeCard'
 import { CATEGORIES } from '@/types'
 
-type Tab = 'recommend' | 'my' | 'all'
+type Tab = 'my' | 'all'
 
 export function RecipesPage() {
-  const [tab, setTab] = useState<Tab>('recommend')
+  const [tab, setTab] = useState<Tab>('my')
   const [categoryFilter, setCategoryFilter] = useState<string>('전체')
-  const { recipes, myRecipes, builtinRecipes } = useRecipes()
-  const { ingredients } = useIngredients()
-
-  const matches = useMemo(
-    () => recommendRecipes(recipes, ingredients),
-    [recipes, ingredients],
-  )
+  const { myRecipes, builtinRecipes } = useRecipes()
 
   const filteredBuiltin =
     categoryFilter === '전체'
@@ -25,7 +16,6 @@ export function RecipesPage() {
       : builtinRecipes.filter((r) => r.category === categoryFilter)
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'recommend', label: '추천' },
     { id: 'my', label: '내 레시피' },
     { id: 'all', label: '전체' },
   ]
@@ -49,8 +39,6 @@ export function RecipesPage() {
           </button>
         ))}
       </div>
-
-      {tab === 'recommend' && <RecommendList matches={matches} />}
 
       {tab === 'my' && (
         <div className="space-y-3">

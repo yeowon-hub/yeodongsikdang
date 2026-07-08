@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Ingredient } from '@/types'
 import { SHELF_LEVELS } from '@/types'
 import { IngredientCard } from '@/components/fridge/IngredientCard'
+import { useIngredientDragOptional } from '@/contexts/IngredientDragContext'
+import { useRecipeBubbleOptional } from '@/contexts/RecipeBubbleContext'
 import { sortByExpiry } from '@/lib/sortIngredients'
 
 export interface LevelStackTheme {
@@ -19,6 +22,7 @@ interface LevelStackInteriorProps {
   ingredients: Ingredient[]
   onIngredientClick: (ingredient: Ingredient) => void
   onIngredientMoveToLevel?: (ingredientId: string, level: number) => void
+  onIngredientDelete?: (ingredientId: string) => void
   theme: LevelStackTheme
   levelLabel: '칸' | '단'
   topSelector?: LevelStackTopSelector
@@ -28,13 +32,14 @@ interface LevelStackInteriorProps {
   dividerVariant?: 'metal' | 'wood'
 }
 
-const ROW_HEIGHT_PX = 70
+const ROW_MIN_HEIGHT_PX = 70
 const DRAG_THRESHOLD_PX = 12
 
 export function LevelStackInterior({
   ingredients,
   onIngredientClick,
   onIngredientMoveToLevel,
+  onIngredientDelete,
   theme,
   levelLabel,
   topSelector,
@@ -47,14 +52,21 @@ export function LevelStackInterior({
   const ingredientRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const dragRef = useRef<{
     id: string
+    item: Ingredient
     fromLevel: number
     startX: number
     startY: number
     dragging: boolean
+    bubbleDrag: boolean
   } | null>(null)
 
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dropLevel, setDropLevel] = useState<number | null>(null)
+  const recipeBubble = useRecipeBubbleOptional()
+  const ingredientDrag = useIngredientDragOptional()
+  const activeBubbleDrag = recipeBubble?.activeDrag ?? null
+  const levelDrag = ingredientDrag?.levelDrag ?? null
+  const isTrashNear = ingredientDrag?.isTrashNear ?? false
 
   useEffect(() => {
     if (focusIngredientId === undefined && focusLevel === undefined) return
@@ -87,13 +99,26 @@ export function LevelStackInterior({
     return null
   }
 
-  const finishDrag = (clientY: number) => {
+  const finishDrag = (clientX: number, clientY: number) => {
     const drag = dragRef.current
     dragRef.current = null
     setDraggingId(null)
     setDropLevel(null)
 
-    if (!drag?.dragging || !onIngredientMoveToLevel) return
+    if (!drag?.dragging) {
+      ingredientDrag?.cancelLevelDrag()
+      return
+    }
+
+    const droppedOnTrash = ingredientDrag?.endLevelDrag(clientX, clientY) ?? false
+    if (droppedOnTrash && onIngredientDelete) {
+      onIngredientDelete(drag.id)
+      recipeBubble?.removeFromBubble(drag.id)
+      return
+    }
+
+    ingredientDrag?.cancelLevelDrag()
+    if (!onIngredientMoveToLevel) return
     const targetLevel = findLevelAtY(clientY) ?? drag.fromLevel
     if (targetLevel !== drag.fromLevel) {
       onIngredientMoveToLevel(drag.id, targetLevel)
@@ -105,34 +130,43 @@ export function LevelStackInterior({
     item: Ingredient,
     level: number,
   ) => {
-    if (!onIngredientMoveToLevel) return
+    if (!onIngredientMoveToLevel && !onIngredientDelete && !recipeBubble) return
     e.currentTarget.setPointerCapture(e.pointerId)
     dragRef.current = {
       id: item.id,
+      item,
       fromLevel: level,
       startX: e.clientX,
       startY: e.clientY,
       dragging: false,
+      bubbleDrag: false,
     }
   }
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>, item: Ingredient) => {
     const drag = dragRef.current
     if (!drag) return
 
     const dx = e.clientX - drag.startX
     const dy = e.clientY - drag.startY
-    if (!drag.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
-      if (Math.abs(dy) > Math.abs(dx)) {
+    if (!drag.dragging && !drag.bubbleDrag && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+      if (Math.abs(dy) > Math.abs(dx) && (onIngredientMoveToLevel || onIngredientDelete)) {
         drag.dragging = true
         setDraggingId(drag.id)
+        ingredientDrag?.beginLevelDrag(item, e.clientX, e.clientY)
+      } else if (Math.abs(dx) >= Math.abs(dy) && recipeBubble) {
+        drag.bubbleDrag = true
+        recipeBubble.beginStorageDrag(item, e.clientX, e.clientY)
       } else {
         dragRef.current = null
         return
       }
     }
     if (drag.dragging) {
+      ingredientDrag?.updateLevelDrag(e.clientX, e.clientY)
       setDropLevel(findLevelAtY(e.clientY))
+    } else if (drag.bubbleDrag && recipeBubble) {
+      recipeBubble.updateDrag(e.clientX, e.clientY)
     }
   }
 
@@ -140,13 +174,19 @@ export function LevelStackInterior({
     const drag = dragRef.current
     if (!drag) return
 
+    if (drag.bubbleDrag && recipeBubble) {
+      recipeBubble.endDrag(e.clientX, e.clientY)
+      dragRef.current = null
+      return
+    }
+
     if (!drag.dragging) {
       dragRef.current = null
       onIngredientClick(item)
       return
     }
 
-    finishDrag(e.clientY)
+    finishDrag(e.clientX, e.clientY)
   }
 
   const grouped = SHELF_LEVELS.map((level) => ({
@@ -159,115 +199,138 @@ export function LevelStackInterior({
       ? 'linear-gradient(180deg, #C4A882 0%, #8B6548 100%)'
       : 'linear-gradient(90deg, rgba(0,0,0,0.12), rgba(255,255,255,0.5), rgba(0,0,0,0.12))'
 
-  return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
-        style={{ backgroundColor: theme.bg }}
-      >
-        {topSelector && (
-          <div className="flex shrink-0 gap-1 border-b border-black/5 px-2.5 py-1.5">
-            {topSelector.options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => topSelector.onChange(opt.value)}
-                className={`flex-1 rounded-md py-1 text-[10px] font-medium transition-colors ${
-                  topSelector.value === opt.value
-                    ? 'bg-white/70 text-gray-800 shadow-sm'
-                    : 'bg-white/40 text-gray-600 hover:bg-white/55'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        )}
-        {grouped.map(({ level, items }) => (
-          <div
-            key={level}
-            data-shelf-level={level}
-            ref={(el) => {
-              if (el) levelRefs.current.set(level, el)
-              else levelRefs.current.delete(level)
-            }}
-            className={`flex shrink-0 flex-col border-b border-black/5 transition-colors last:border-b-0 ${
-              dropLevel === level ? 'bg-white/35 ring-1 ring-inset ring-header/40' : ''
-            }`}
-          >
-            <div className="shrink-0 px-2.5 pt-1.5">
-              <span className="inline-block rounded-md bg-white/50 px-2 py-0.5 text-[10px] font-medium leading-none text-gray-600">
-                {level + 1}
-                {levelLabel}
-              </span>
-            </div>
-            <div
-              data-inner-swipe
-              className="mx-2 shrink-0 overflow-x-auto overflow-y-hidden px-1 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={{ height: ROW_HEIGHT_PX }}
-            >
-              {items.length === 0 ? (
-                <p className="flex h-full items-center text-[11px] text-gray-400">비어있음</p>
-              ) : (
-                <div className="flex h-full flex-nowrap items-center gap-1.5">
-                  {items.map((item) => (
-                    <div
-                      key={item.id}
-                      ref={(el) => {
-                        if (el) ingredientRefs.current.set(item.id, el)
-                        else ingredientRefs.current.delete(item.id)
-                      }}
-                      className={`shrink-0 touch-none select-none ${
-                        draggingId === item.id ? 'opacity-60' : ''
-                      }`}
-                      onPointerDown={
-                        onIngredientMoveToLevel
-                          ? (e) => handlePointerDown(e, item, level)
-                          : undefined
-                      }
-                      onPointerMove={onIngredientMoveToLevel ? handlePointerMove : undefined}
-                      onPointerUp={
-                        onIngredientMoveToLevel ? (e) => handlePointerUp(e, item) : undefined
-                      }
-                      onPointerCancel={
-                        onIngredientMoveToLevel
-                          ? (e) => {
-                              if (dragRef.current?.dragging) finishDrag(e.clientY)
-                              else dragRef.current = null
-                            }
-                          : undefined
-                      }
-                      onClick={
-                        onIngredientMoveToLevel ? undefined : () => onIngredientClick(item)
-                      }
-                    >
-                      <IngredientCard
-                        ingredient={item}
-                        onClick={onIngredientMoveToLevel ? undefined : () => onIngredientClick(item)}
-                        compact
-                        highlighted={focusIngredientId === item.id}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div
-              className={`mx-2 mb-1.5 mt-0.5 shrink-0 rounded-sm shadow-sm ${
-                dividerVariant === 'wood' ? 'h-2.5' : 'h-1.5 rounded-full'
-              }`}
-              style={{ background: dividerStyle }}
-            />
-          </div>
-        ))}
+  const canDrag =
+    onIngredientMoveToLevel || onIngredientDelete || recipeBubble
 
-        {ingredients.length === 0 && emptyMessage && (
-          <p className="flex flex-1 items-center justify-center whitespace-pre-line p-6 text-center text-sm text-gray-500">
-            {emptyMessage}
-          </p>
-        )}
+  return (
+    <>
+      <div className="flex h-full min-h-0 flex-col overflow-hidden">
+        <div
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
+          style={{ backgroundColor: theme.bg }}
+        >
+          {topSelector && (
+            <div className="flex shrink-0 gap-1 border-b border-black/5 px-2.5 py-1.5">
+              {topSelector.options.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => topSelector.onChange(opt.value)}
+                  className={`flex-1 rounded-md py-1 text-[10px] font-medium transition-colors ${
+                    topSelector.value === opt.value
+                      ? 'bg-white/70 text-gray-800 shadow-sm'
+                      : 'bg-white/40 text-gray-600 hover:bg-white/55'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {grouped.map(({ level, items }) => (
+            <div
+              key={level}
+              data-shelf-level={level}
+              ref={(el) => {
+                if (el) levelRefs.current.set(level, el)
+                else levelRefs.current.delete(level)
+              }}
+              className={`flex shrink-0 flex-col border-b border-black/5 transition-colors last:border-b-0 ${
+                dropLevel === level ? 'bg-white/35 ring-1 ring-inset ring-header/40' : ''
+              }`}
+            >
+              <div className="shrink-0 px-2.5 pt-1.5">
+                <span className="inline-block rounded-md bg-white/50 px-2 py-0.5 text-[10px] font-medium leading-none text-gray-600">
+                  {level + 1}
+                  {levelLabel}
+                </span>
+              </div>
+              <div
+                className="mx-2 shrink-0 px-1 py-1"
+                style={{ minHeight: ROW_MIN_HEIGHT_PX }}
+              >
+                {items.length === 0 ? (
+                  <p className="flex h-full min-h-[70px] items-center text-[11px] text-gray-400">
+                    비어있음
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap content-start items-start gap-1.5">
+                    {items.map((item) => {
+                      const isDragging = draggingId === item.id
+                      return (
+                        <div
+                          key={item.id}
+                          ref={(el) => {
+                            if (el) ingredientRefs.current.set(item.id, el)
+                            else ingredientRefs.current.delete(item.id)
+                          }}
+                          className={`shrink-0 touch-none select-none transition-opacity ${
+                            isDragging ? 'opacity-0' : ''
+                          } ${
+                            activeBubbleDrag?.ingredient.id === item.id &&
+                            activeBubbleDrag.source === 'storage'
+                              ? 'opacity-40'
+                              : ''
+                          }`}
+                          onPointerDown={
+                            canDrag ? (e) => handlePointerDown(e, item, level) : undefined
+                          }
+                          onPointerMove={canDrag ? (e) => handlePointerMove(e, item) : undefined}
+                          onPointerUp={canDrag ? (e) => handlePointerUp(e, item) : undefined}
+                          onPointerCancel={
+                            canDrag
+                              ? (e) => {
+                                  if (dragRef.current?.dragging) finishDrag(e.clientX, e.clientY)
+                                  else if (dragRef.current?.bubbleDrag) recipeBubble?.cancelDrag()
+                                  else ingredientDrag?.cancelLevelDrag()
+                                  dragRef.current = null
+                                }
+                              : undefined
+                          }
+                          onClick={canDrag ? undefined : () => onIngredientClick(item)}
+                        >
+                          <IngredientCard
+                            ingredient={item}
+                            onClick={canDrag ? undefined : () => onIngredientClick(item)}
+                            compact
+                            highlighted={focusIngredientId === item.id}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+              <div
+                className={`mx-2 mb-1.5 mt-0.5 shrink-0 rounded-sm shadow-sm ${
+                  dividerVariant === 'wood' ? 'h-2.5' : 'h-1.5 rounded-full'
+                }`}
+                style={{ background: dividerStyle }}
+              />
+            </div>
+          ))}
+
+          {ingredients.length === 0 && emptyMessage && (
+            <p className="flex flex-1 items-center justify-center whitespace-pre-line p-6 text-center text-sm text-gray-500">
+              {emptyMessage}
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+
+      {levelDrag &&
+        createPortal(
+          <div
+            className={`pointer-events-none fixed z-[90] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-150 ${
+              isTrashNear ? 'opacity-35' : 'opacity-100'
+            }`}
+            style={{ left: levelDrag.x, top: levelDrag.y }}
+          >
+            <IngredientCard ingredient={levelDrag.ingredient} compact asDiv />
+          </div>,
+          document.body,
+        )}
+    </>
   )
 }
 
