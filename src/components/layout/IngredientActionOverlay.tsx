@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { CircleHelp, MessageCircle, Trash2, X } from 'lucide-react'
+import { ChefHat, Trash2, X } from 'lucide-react'
 import { useIngredients } from '@/hooks/useIngredients'
 import { useRecipes } from '@/hooks/useRecipes'
 import { INGREDIENT_RECIPE_EVENT } from '@/lib/ingredientActions'
@@ -26,12 +26,9 @@ export function IngredientActionOverlay() {
   const { ingredients, deleteIngredient } = useIngredients()
   const { recipes } = useRecipes()
   const [trashOver, setTrashOver] = useState(false)
-  const [balloonOver, setBalloonOver] = useState(false)
-  const [balloonIngredientId, setBalloonIngredientId] = useState<string | null>(null)
   const [recipeIngredientId, setRecipeIngredientId] = useState<string | null>(null)
 
   const visible = ACTION_PATHS.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`))
-  const balloonIngredient = ingredients.find((item) => item.id === balloonIngredientId) ?? null
   const recipeIngredient = ingredients.find((item) => item.id === recipeIngredientId) ?? null
   const matchedRecipes = useMemo(() => {
     if (!recipeIngredient) return []
@@ -55,54 +52,11 @@ export function IngredientActionOverlay() {
     const id = getDraggedIngredientId(e)
     if (!id) return
     await deleteIngredient(id)
-    if (balloonIngredientId === id) setBalloonIngredientId(null)
     if (recipeIngredientId === id) setRecipeIngredientId(null)
-  }
-
-  const handleDropToBalloon = (e: React.DragEvent) => {
-    e.preventDefault()
-    setBalloonOver(false)
-    const id = getDraggedIngredientId(e)
-    if (id && ingredients.some((item) => item.id === id)) setBalloonIngredientId(id)
-  }
-
-  const openRecipeList = () => {
-    if (balloonIngredientId) setRecipeIngredientId(balloonIngredientId)
   }
 
   return createPortal(
     <>
-      <div
-        className="fixed right-4 top-[4.75rem] z-40 flex flex-col items-center gap-1"
-        onDragOver={(e) => {
-          e.preventDefault()
-          setBalloonOver(true)
-        }}
-        onDragLeave={() => setBalloonOver(false)}
-        onDrop={handleDropToBalloon}
-      >
-        <div
-          className={`flex h-14 w-14 items-center justify-center rounded-full border-2 bg-white shadow-lg transition-all ${
-            balloonOver ? 'scale-110 border-header bg-header/20' : 'border-header/30'
-          }`}
-          aria-label="추천 재료 담기"
-        >
-          <MessageCircle size={25} className="text-header-text" />
-        </div>
-        <button
-          type="button"
-          onClick={openRecipeList}
-          disabled={!balloonIngredient}
-          className="flex h-8 min-w-8 items-center justify-center rounded-full bg-header px-2 text-header-text shadow-md disabled:bg-gray-200 disabled:text-gray-400"
-          aria-label="담은 재료 추천 레시피 보기"
-        >
-          <CircleHelp size={18} />
-          {balloonIngredient && (
-            <span className="ml-1 max-w-16 truncate text-[10px] font-semibold">{balloonIngredient.name}</span>
-          )}
-        </button>
-      </div>
-
       <div
         className={`fixed left-1/2 z-40 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full border-2 bg-white shadow-lg transition-all ${
           trashOver ? 'scale-110 border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-500'
@@ -131,7 +85,7 @@ export function IngredientActionOverlay() {
           <div className="relative w-full max-w-lg rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl">
             <div className="mb-4 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/20 text-header-text">
-                <MessageCircle size={20} />
+                <ChefHat size={20} />
               </div>
               <div className="min-w-0 flex-1">
                 <h2 className="font-bold text-gray-800">{recipeIngredient.name} 추천 레시피</h2>
