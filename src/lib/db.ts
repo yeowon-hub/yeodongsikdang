@@ -48,11 +48,19 @@ class YeodongDB extends Dexie {
 
 export const db = new YeodongDB()
 
+export const SYNC_REQUEST_EVENT = 'yeodong:sync-request'
+
+function requestSync() {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new Event(SYNC_REQUEST_EVENT))
+}
+
 export async function enqueueSync(item: Omit<SyncQueueItem, 'id' | 'createdAt'>) {
   await db.syncQueue.add({
     ...item,
     createdAt: new Date().toISOString(),
   })
+  requestSync()
 }
 
 export async function getPendingSyncItems() {

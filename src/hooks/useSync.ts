@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured, getRedirectUrl } from '@/lib/supabase'
-import { db, getPendingSyncItems, clearSyncItem } from '@/lib/db'
+import { db, getPendingSyncItems, clearSyncItem, SYNC_REQUEST_EVENT } from '@/lib/db'
 import type { Ingredient, Recipe } from '@/types'
+
+type RemoteRow = Record<string, unknown>
 
 function toDbIngredient(row: Record<string, unknown>): Ingredient {
   return {
@@ -80,6 +82,38 @@ function recipeToRow(item: Recipe, userId: string, householdId: string | null) {
   }
 }
 
+function getRealtimeFilter(user: User, householdId: string | null) {
+  return householdId ? `household_id=eq.${householdId}` : `user_id=eq.${user.id}`
+}
+
+function isInActiveScope(row: RemoteRow, user: User, householdId: string | null) {
+  const rowHouseholdId = (row.household_id as string | null | undefined) ?? null
+  if (householdId) return rowHouseholdId === householdId
+  return rowHouseholdId === null && row.user_id === user.id
+}
+
+async function applyRemoteIngredient(row: RemoteRow, user: User, householdId: string | null) {
+  if (!isInActiveScope(row, user, householdId)) return
+
+  const incoming = toDbIngredient(row)
+  const local = await db.ingredients.get(incoming.id)
+  if (!local || new Date(incoming.updatedAt) >= new Date(local.updatedAt)) {
+    await db.ingredients.put(incoming)
+  }
+}
+
+async function applyRemoteRecipe(row: RemoteRow, user: User, householdId: string | null) {
+  if (!isInActiveScope(row, user, householdId)) return
+
+  const incoming = toDbRecipe(row)
+  if (incoming.isBuiltin) return
+
+  const local = await db.recipes.get(incoming.id)
+  if (!local || new Date(incoming.updatedAt) >= new Date(local.updatedAt)) {
+    await db.recipes.put(incoming)
+  }
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -109,7 +143,13 @@ export function useAuth() {
 
   const signUp = async (email: string, password: string) => {
     if (!supabase) throw new Error('Supabase가 설정되지 않았습니다')
-    return supabase.auth.signUp({ email, password })
+    return supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: getRedirectUrl(),
+      },
+    })
   }
 
   const signIn = async (email: string, password: string) => {
@@ -245,14 +285,74 @@ export function useSync(user: User | null, householdId: string | null) {
   useEffect(() => {
     if (!user) return
     sync()
-    const interval = setInterval(sync, 30000)
+    const interval = setInterval(sync, 10000)
+    const requestSync = () => sync()
     const onOnline = () => sync()
+    const onFocus = () => sync()
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') sync()
+    }
+    window.addEventListener(SYNC_REQUEST_EVENT, requestSync)
     window.addEventListener('online', onOnline)
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibilityChange)
     return () => {
       clearInterval(interval)
+      window.removeEventListener(SYNC_REQUEST_EVENT, requestSync)
       window.removeEventListener('online', onOnline)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [user, householdId, sync])
+
+  useEffect(() => {
+    if (!supabase || !user) return
+
+    const client = supabase
+    const filter = getRealtimeFilter(user, householdId)
+    const scope = householdId ?? user.id
+    const channel = client
+      .channel(`yeodong-sync-${scope}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'ingredients', filter },
+        (payload) => {
+          void (async () => {
+            if (payload.eventType === 'DELETE') {
+              const id = payload.old.id as string | undefined
+              if (id) await db.ingredients.delete(id)
+              return
+            }
+            await applyRemoteIngredient(payload.new as RemoteRow, user, householdId)
+          })()
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'recipes', filter },
+        (payload) => {
+          void (async () => {
+            if (payload.eventType === 'DELETE') {
+              const id = payload.old.id as string | undefined
+              if (id) await db.recipes.delete(id)
+              return
+            }
+            await applyRemoteRecipe(payload.new as RemoteRow, user, householdId)
+          })()
+        },
+      )
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          void pullFromRemote()
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime sync channel error:', err)
+        }
+      })
+
+    return () => {
+      void client.removeChannel(channel)
+    }
+  }, [user, householdId, pullFromRemote])
 
   return { syncing, lastSynced, sync }
 }

@@ -6,6 +6,7 @@ interface StorageLevelViewProps {
   designId: Extract<StorageDesignId, 'shelf' | 'pantry'>
   ingredients: Ingredient[]
   onIngredientClick: (ingredient: Ingredient) => void
+  onIngredientLongPress?: (ingredient: Ingredient) => void
   emptyMessage: string
 }
 
@@ -13,6 +14,7 @@ export function StorageLevelView({
   designId,
   ingredients,
   onIngredientClick,
+  onIngredientLongPress,
   emptyMessage,
 }: StorageLevelViewProps) {
   return (
@@ -20,6 +22,7 @@ export function StorageLevelView({
       designId={designId}
       ingredients={ingredients}
       onIngredientClick={onIngredientClick}
+      onIngredientLongPress={onIngredientLongPress}
       emptyMessage={emptyMessage}
     />
   )
