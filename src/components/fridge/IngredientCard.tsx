@@ -21,7 +21,7 @@ const BANNER_HEIGHT = 90
 
 const INGREDIENT_COLOR_GROUPS = [
   {
-    className: 'border-header/40 bg-header/25',
+    className: 'border-pink-200 bg-pink-50',
     keywords: [
       '소고기',
       '쇠고기',
@@ -43,11 +43,11 @@ const INGREDIENT_COLOR_GROUPS = [
     ],
   },
   {
-    className: 'border-teal-200 bg-teal-50',
+    className: 'border-orange-200 bg-orange-50',
     keywords: ['두부', '순두부', '연두부', '계란', '달걀', '어묵', '오뎅', '햄', '소시지', '치즈', '유부'],
   },
   {
-    className: 'border-amber-200 bg-amber-50',
+    className: 'border-stone-300 bg-stone-100',
     keywords: [
       '소스',
       '오일',
@@ -73,6 +73,10 @@ const INGREDIENT_COLOR_GROUPS = [
     ],
   },
   {
+    className: 'border-orange-300 bg-orange-100',
+    keywords: ['김치', '배추김치', '묵은지', '신김치', '장아찌', '단무지', '나물', '무침', '젓갈', '피클'],
+  },
+  {
     className: 'border-lime-200 bg-lime-50',
     keywords: [
       '상추',
@@ -82,7 +86,6 @@ const INGREDIENT_COLOR_GROUPS = [
       '야채',
       '배추',
       '양배추',
-      '김치',
       '대파',
       '쪽파',
       '양파',
@@ -104,7 +107,7 @@ const INGREDIENT_COLOR_GROUPS = [
     ],
   },
   {
-    className: 'border-gray-200 bg-gray-100',
+    className: 'border-sky-200 bg-sky-50',
     keywords: ['라면', '만두', '간편식', '즉석', '냉동식품', '밀키트', '떡', '떡볶이떡', '떡국떡', '유부초밥'],
   },
 ] as const
@@ -175,7 +178,7 @@ export function IngredientCard({
           : `rounded-xl border shadow-sm transition-all hover:shadow-md active:scale-[0.98] ${colorClass}`
       } ${
         highlighted
-          ? 'z-10 border-pink-300 bg-pink-100 ring-2 ring-pink-300 ring-offset-1'
+          ? 'z-10 border-red-500 ring-[3px] ring-red-400 ring-offset-1'
           : !banner &&
               (expiryStatus === 'expired'
                 ? 'border-red-300'

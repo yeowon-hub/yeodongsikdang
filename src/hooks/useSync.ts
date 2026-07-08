@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured, getRedirectUrl } from '@/lib/supabase'
-import { db, getPendingSyncItems, clearSyncItem } from '@/lib/db'
+import { db, getPendingSyncItems, clearSyncItem, SYNC_REQUEST_EVENT } from '@/lib/db'
 import type { Ingredient, Recipe } from '@/types'
 
 type RemoteRow = Record<string, unknown>
@@ -285,12 +285,23 @@ export function useSync(user: User | null, householdId: string | null) {
   useEffect(() => {
     if (!user) return
     sync()
-    const interval = setInterval(sync, 30000)
+    const interval = setInterval(sync, 10000)
+    const requestSync = () => sync()
     const onOnline = () => sync()
+    const onFocus = () => sync()
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') sync()
+    }
+    window.addEventListener(SYNC_REQUEST_EVENT, requestSync)
     window.addEventListener('online', onOnline)
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibilityChange)
     return () => {
       clearInterval(interval)
+      window.removeEventListener(SYNC_REQUEST_EVENT, requestSync)
       window.removeEventListener('online', onOnline)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [user, householdId, sync])
 
