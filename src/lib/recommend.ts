@@ -64,6 +64,11 @@ export function getAvailableNames(ingredients: Ingredient[]) {
   return new Set(ingredients.map((i) => normalizeName(i.name)))
 }
 
+export function recipeUsesIngredient(recipe: Recipe, ingredientName: string) {
+  const available = new Set([normalizeName(ingredientName)])
+  return recipe.ingredients.some((ingredient) => hasIngredient(available, ingredient.name))
+}
+
 export function matchRecipe(recipe: Recipe, available: Set<string>): RecipeMatch {
   const required = recipe.ingredients.filter((i) => !i.isOptional)
   const optional = recipe.ingredients.filter((i) => i.isOptional)

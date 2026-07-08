@@ -3,6 +3,7 @@ import { BottomTabBar } from './BottomTabBar'
 import { GlobalAddButton } from './GlobalAddButton'
 import { GlobalSearch } from './GlobalSearch'
 import { HomeViewport } from './HomeViewport'
+import { IngredientActionOverlay } from './IngredientActionOverlay'
 import { SwipeableMainOutlet } from './SwipeableMainOutlet'
 import { GlobalAddFabProvider } from '@/contexts/GlobalAddFabContext'
 import { useAuth } from '@/hooks/useSync'
@@ -79,6 +80,7 @@ export function AppLayout() {
           </main>
         </div>
         <BottomTabBar />
+        <IngredientActionOverlay />
         <GlobalAddButton />
       </div>
     </GlobalAddFabProvider>

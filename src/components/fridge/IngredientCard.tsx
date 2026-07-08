@@ -1,4 +1,5 @@
 import { formatExpiryDisplay, getExpiryStatus } from '@/lib/recommend'
+import { requestIngredientRecipes } from '@/lib/ingredientActions'
 import type { Ingredient } from '@/types'
 import { INGREDIENT_CARD_SIZE } from '@/types'
 import { AlertTriangle, Clock } from 'lucide-react'
@@ -6,6 +7,7 @@ import { AlertTriangle, Clock } from 'lucide-react'
 interface IngredientCardProps {
   ingredient: Ingredient
   onClick?: () => void
+  onLongPress?: (ingredient: Ingredient) => void
   compact?: boolean
   mini?: boolean
   banner?: boolean
@@ -125,6 +127,7 @@ function getIngredientColorClass(name: string) {
 export function IngredientCard({
   ingredient,
   onClick,
+  onLongPress,
   compact,
   mini,
   banner,
@@ -134,11 +137,26 @@ export function IngredientCard({
   const expiryStatus = getExpiryStatus(ingredient.expiryDate)
   const Tag = asDiv ? 'div' : 'button'
   const colorClass = getIngredientColorClass(ingredient.name)
+  const handleLongPress = (item: Ingredient) => {
+    if (onLongPress) onLongPress(item)
+    else requestIngredientRecipes(item.id)
+  }
 
   return (
     <Tag
       type={asDiv ? undefined : 'button'}
       onClick={asDiv ? undefined : onClick}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('application/x-yeodong-ingredient-id', ingredient.id)
+        e.dataTransfer.setData('text/plain', ingredient.id)
+        e.dataTransfer.effectAllowed = 'copyMove'
+      }}
+      onDoubleClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        handleLongPress(ingredient)
+      }}
       style={
         compact
           ? { width: compactWidth, height: compactHeight, minWidth: compactWidth, maxWidth: compactWidth }

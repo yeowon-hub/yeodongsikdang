@@ -5,6 +5,7 @@ import { IngredientForm } from '@/components/fridge/IngredientForm'
 import { DryStorageView } from '@/components/storage/DryStorageView'
 import { useSuppressGlobalAddFab } from '@/contexts/GlobalAddFabContext'
 import { useIngredients } from '@/hooks/useIngredients'
+import { requestIngredientRecipes } from '@/lib/ingredientActions'
 import type { Ingredient } from '@/types'
 
 export function ShelfPage() {
@@ -42,6 +43,7 @@ export function ShelfPage() {
           setEditing(ing)
           setFormOpen(true)
         }}
+        onIngredientLongPress={(ing) => requestIngredientRecipes(ing.id)}
         onIngredientMoveToLevel={(id, level) => moveIngredientToLevel(id, level)}
         focusLevel={focusLevel}
         focusIngredientId={focusIngredientId}
