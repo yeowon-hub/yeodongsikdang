@@ -50,10 +50,10 @@
   </g>
 
   <!-- Melange chopsticks (right, vertical) -->
-  <g transform="translate(302 150)">
-    <rect x="-18" y="78" width="10" height="156" rx="5" fill="url(#melange)"/>
-    <rect x="-4" y="78" width="10" height="156" rx="5" fill="url(#melange)"/>
-    <rect x="-18" y="78" width="10" height="18" rx="5" fill="#B5AFA7" opacity="0.55"/>
-    <rect x="-4" y="78" width="10" height="18" rx="5" fill="#B5AFA7" opacity="0.55"/>
+  <g transform="translate(302 156)">
+    <rect x="-18" y="6" width="10" height="214" rx="5" fill="url(#melange)"/>
+    <rect x="-4" y="6" width="10" height="214" rx="5" fill="url(#melange)"/>
+    <rect x="-18" y="6" width="10" height="18" rx="5" fill="#B5AFA7" opacity="0.55"/>
+    <rect x="-4" y="6" width="10" height="18" rx="5" fill="#B5AFA7" opacity="0.55"/>
   </g>
 </svg>
