@@ -1,0 +1,12 @@
+# Supabase CLI project link (project ref from VITE_SUPABASE_URL)
+project_id = "jakbjzgdewraeilerwuh"
+
+[auth]
+site_url = "https://yeodongsikdang.vercel.app"
+additional_redirect_urls = [
+  "https://yeodongsikdang.vercel.app/**",
+  "https://yeodongsikdang.vercel.app/account",
+  "https://*-yeowon-s-projects.vercel.app/**",
+  "http://localhost:5173/**",
+  "http://localhost:5173/account",
+]

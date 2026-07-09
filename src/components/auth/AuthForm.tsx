@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useSync'
+import { useProfile } from '@/contexts/ProfileContext'
 import { HouseholdPanel } from '@/components/auth/HouseholdPanel'
-import { LogIn, Mail, Lock } from 'lucide-react'
+import { AdminAccountPanel } from '@/components/auth/AdminAccountPanel'
+import { LogIn, Mail, Lock, Shield } from 'lucide-react'
 
 export function AuthForm() {
   const { user, signIn, signUp, signInWithKakao, signOut, isConfigured } = useAuth()
+  const { profile } = useProfile()
   const profileName =
     ((user?.user_metadata?.nickname ||
       user?.user_metadata?.name ||
@@ -17,7 +20,9 @@ export function AuthForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showManage, setShowManage] = useState(false)
 
   if (!isConfigured) {
     return (
@@ -35,14 +40,38 @@ export function AuthForm() {
   }
 
   if (user) {
+    if (showManage && profile?.isAdmin) {
+      return (
+        <div className="min-h-0 flex-1 overflow-y-auto bg-header/10 px-4 py-6">
+          <AdminAccountPanel embedded onBack={() => setShowManage(false)} />
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-0 flex-1 overflow-y-auto bg-header/10 px-4 py-6">
         <div className="rounded-2xl bg-white p-6 shadow-sm text-center">
           <p className="text-lg font-semibold text-gray-800">로그인됨</p>
           <p className="mt-1 text-sm text-gray-500">{profileName}</p>
+          {profile?.isAdmin && (
+            <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-header/20 px-2.5 py-1 text-xs font-medium text-header-text">
+              <Shield size={12} />
+              관리자
+            </span>
+          )}
           <p className="mt-4 text-xs text-green-600">
             아래에서 가족을 설정하면 여러 기기에서 재료·레시피가 공유됩니다
           </p>
+          {profile?.isAdmin && (
+            <button
+              type="button"
+              onClick={() => setShowManage(true)}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-header/30 bg-header/5 py-3 text-sm font-semibold text-header-text hover:bg-header/15"
+            >
+              <Shield size={16} />
+              계정 관리
+            </button>
+          )}
           <button
             type="button"
             onClick={() => signOut()}
@@ -60,8 +89,17 @@ export function AuthForm() {
     if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
       return 'Supabase 서버에 연결하지 못했습니다. 인터넷 연결과 Supabase URL 설정을 확인해주세요.'
     }
+    if (
+      message.toLowerCase().includes('invalid login credentials') ||
+      message.toLowerCase().includes('invalid credentials')
+    ) {
+      return '이메일 또는 비밀번호가 맞지 않습니다. 회원가입 직후라면 이메일함의 확인 링크를 먼저 눌러주세요.'
+    }
     if (message.toLowerCase().includes('email rate limit exceeded')) {
       return '이메일 전송 횟수 제한에 걸렸습니다. 1시간 정도 기다린 뒤 다시 시도하거나, Supabase에서 이메일 확인(Confirm email)을 끄고 시도해주세요.'
+    }
+    if (message.toLowerCase().includes('user already registered')) {
+      return '이미 가입된 이메일입니다. 로그인을 시도하거나 비밀번호를 확인해주세요.'
     }
     if (message.toLowerCase().includes('unsupported provider')) {
       return 'Supabase에서 Kakao provider가 비활성화되어 있습니다. Authentication > Providers > Kakao를 켜주세요.'
@@ -72,11 +110,33 @@ export function AuthForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setInfo('')
     setLoading(true)
     try {
-      const { error: authError } =
-        mode === 'login' ? await signIn(email, password) : await signUp(email, password)
-      if (authError) setError(formatAuthError(authError.message))
+      if (mode === 'login') {
+        const { error: authError } = await signIn(email, password)
+        if (authError) setError(formatAuthError(authError.message))
+        return
+      }
+
+      const { data, error: authError } = await signUp(email, password)
+      if (authError) {
+        setError(formatAuthError(authError.message))
+        return
+      }
+
+      if (data.user?.identities?.length === 0) {
+        setError('이미 가입된 이메일입니다. 로그인을 시도하거나 비밀번호를 확인해주세요.')
+        setMode('login')
+        return
+      }
+
+      if (data.session) return
+
+      setInfo(
+        `${email}(으)로 확인 메일을 보냈습니다. 메일함(스팸함 포함)에서 링크를 눌러 가입을 완료한 뒤 로그인해주세요.`,
+      )
+      setMode('login')
     } catch (err) {
       setError(formatAuthError(err instanceof Error ? err.message : '오류가 발생했습니다'))
     } finally {
@@ -86,6 +146,7 @@ export function AuthForm() {
 
   const handleKakao = async () => {
     setError('')
+    setInfo('')
     setLoading(true)
     try {
       const { error: authError } = await signInWithKakao()
@@ -130,6 +191,7 @@ export function AuthForm() {
             />
           </div>
 
+          {info && <p className="text-sm text-green-700">{info}</p>}
           {error && <p className="text-sm text-red-500">{error}</p>}
 
           <button
@@ -155,7 +217,11 @@ export function AuthForm() {
           {mode === 'login' ? '계정이 없으신가요?' : '이미 계정이 있으신가요?'}{' '}
           <button
             type="button"
-            onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+            onClick={() => {
+              setMode(mode === 'login' ? 'signup' : 'login')
+              setError('')
+              setInfo('')
+            }}
             className="font-semibold text-header-text hover:text-header-dark"
           >
             {mode === 'login' ? '회원가입' : '로그인'}

@@ -184,6 +184,24 @@ export interface Household {
   memberCount: number
 }
 
+export interface UserProfile {
+  id: string
+  email: string | null
+  displayName: string | null
+  isAdmin: boolean
+  createdAt: string
+}
+
+export interface AdminUserAccount {
+  id: string
+  email: string | null
+  displayName: string | null
+  isAdmin: boolean
+  createdAt: string
+  lastSignInAt: string | null
+  householdName: string | null
+}
+
 /** 예전 location 값 → 새 구조 */
 export const LEGACY_LOCATION_MAP: Record<string, StorageLocation> = {
   fridge: 'general_fridge',

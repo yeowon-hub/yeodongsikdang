@@ -10,6 +10,7 @@ import { PantryPage } from '@/pages/PantryPage'
 import { RecipesPage } from '@/pages/RecipesPage'
 import { RecipeDetailPage } from '@/pages/RecipeDetailPage'
 import { AccountPage } from '@/pages/AccountPage'
+import { AccountManagePage } from '@/pages/AccountManagePage'
 import { seedIfNeeded } from '@/lib/seed'
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="pantry" element={<PantryPage />} />
             <Route path="recipes" element={<RecipesPage />} />
             <Route path="recipes/:id" element={<RecipeDetailPage />} />
+            <Route path="account/manage" element={<AccountManagePage />} />
             <Route path="account" element={<AccountPage />} />
           </Route>
           <Route path="login" element={<Navigate to="/account" replace />} />

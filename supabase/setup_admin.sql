@@ -1,0 +1,5 @@
+-- 계정 관리(관리자) 기능 설정
+-- Supabase SQL Editor에서 migrations/006_admin_profiles.sql 전체를 Run 하세요.
+--
+-- 특정 이메일을 관리자로 지정:
+-- UPDATE public.profiles SET is_admin = true WHERE email = 'your@email.com';

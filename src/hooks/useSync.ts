@@ -109,7 +109,13 @@ export function useAuth() {
 
   const signUp = async (email: string, password: string) => {
     if (!supabase) throw new Error('Supabase가 설정되지 않았습니다')
-    return supabase.auth.signUp({ email, password })
+    return supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: getRedirectUrl(),
+      },
+    })
   }
 
   const signIn = async (email: string, password: string) => {
