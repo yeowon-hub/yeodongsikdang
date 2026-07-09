@@ -1,15 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <defs>
-    <linearGradient id="apricotPlate" x1="96" y1="88" x2="416" y2="424" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFC89E"/>
-      <stop offset="0.55" stop-color="#FFB88E"/>
-      <stop offset="1" stop-color="#F0A06E"/>
-    </linearGradient>
-    <linearGradient id="plateRim" x1="256" y1="96" x2="256" y2="416" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="0.08"/>
-    </linearGradient>
-    <radialGradient id="whitePlate" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(248 252) rotate(90) scale(148)">
+    <radialGradient id="whitePlate" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(248 246) rotate(90) scale(168)">
       <stop offset="0" stop-color="#FFFFFF"/>
       <stop offset="0.82" stop-color="#F7F7F7"/>
       <stop offset="1" stop-color="#ECECEC"/>
@@ -30,27 +21,22 @@
   <!-- Canvas -->
   <rect width="512" height="512" rx="112" fill="#FFB88E"/>
 
-  <!-- Apricot rounded square plate -->
+  <!-- White circular plate -->
   <g filter="url(#softShadow)">
-    <rect x="72" y="96" width="368" height="320" rx="56" fill="url(#apricotPlate)"/>
-    <rect x="72" y="96" width="368" height="320" rx="56" fill="url(#plateRim)"/>
-    <rect x="88" y="112" width="336" height="288" rx="44" fill="none" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="3"/>
+    <circle cx="256" cy="256" r="158" fill="url(#whitePlate)"/>
+    <circle cx="256" cy="256" r="158" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+    <ellipse cx="256" cy="240" rx="108" ry="32" fill="#FFFFFF" opacity="0.45"/>
   </g>
 
-  <!-- White circular plate -->
-  <circle cx="256" cy="262" r="132" fill="url(#whitePlate)"/>
-  <circle cx="256" cy="262" r="132" fill="none" stroke="#FFFFFF" stroke-width="5"/>
-  <ellipse cx="256" cy="248" rx="92" ry="28" fill="#FFFFFF" opacity="0.45"/>
-
   <!-- Melange spoon (left, vertical) -->
-  <g transform="translate(206 156)">
+  <g transform="translate(206 150)">
     <rect x="-10" y="72" width="20" height="148" rx="10" fill="url(#melange)"/>
     <ellipse cx="0" cy="52" rx="34" ry="46" fill="url(#melange)"/>
     <ellipse cx="0" cy="46" rx="24" ry="30" fill="#9A948C" opacity="0.35"/>
   </g>
 
   <!-- Melange chopsticks (right, vertical) -->
-  <g transform="translate(302 156)">
+  <g transform="translate(302 150)">
     <rect x="-18" y="6" width="10" height="214" rx="5" fill="url(#melange)"/>
     <rect x="-4" y="6" width="10" height="214" rx="5" fill="url(#melange)"/>
     <rect x="-18" y="6" width="10" height="18" rx="5" fill="#B5AFA7" opacity="0.55"/>
