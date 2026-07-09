@@ -12,7 +12,17 @@ import {
 import type { Ingredient } from '@/types'
 
 const DRAG_THRESHOLD_PX = 12
+const BUBBLE_NEAR_PADDING_PX = 72
 const STORAGE_KEY = 'recipe-bubble-ingredients'
+
+function pointInRect(x: number, y: number, rect: DOMRect, padding = 0) {
+  return (
+    x >= rect.left - padding &&
+    x <= rect.right + padding &&
+    y >= rect.top - padding &&
+    y <= rect.bottom + padding
+  )
+}
 
 type DragSource = 'storage' | 'bubble'
 
@@ -34,6 +44,10 @@ interface RecipeBubbleContextValue {
   isOverBubble: (x: number, y: number) => boolean
   activeDrag: ActiveDrag | null
   isBubbleHover: boolean
+  isBubbleNear: boolean
+  updateBubbleProximity: (x: number, y: number) => void
+  clearBubbleProximity: () => void
+  tryAddAtDrop: (x: number, y: number, ingredient: Ingredient) => boolean
   beginStorageDrag: (ingredient: Ingredient, x: number, y: number) => void
   updateDrag: (x: number, y: number) => void
   endDrag: (x: number, y: number) => void
@@ -76,6 +90,7 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
   })
   const [activeDrag, setActiveDrag] = useState<ActiveDrag | null>(null)
   const [isBubbleHover, setIsBubbleHover] = useState(false)
+  const [isBubbleNear, setIsBubbleNear] = useState(false)
   const bubbleDropRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -86,11 +101,35 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
     }
   }, [bubbleIngredients])
 
-  const isOverBubble = useCallback((x: number, y: number) => {
-    const el = bubbleDropRef.current
-    if (!el) return false
-    const rect = el.getBoundingClientRect()
-    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
+  const getBubbleRect = useCallback(() => bubbleDropRef.current?.getBoundingClientRect() ?? null, [])
+
+  const isOverBubble = useCallback(
+    (x: number, y: number) => {
+      const rect = getBubbleRect()
+      return rect ? pointInRect(x, y, rect) : false
+    },
+    [getBubbleRect],
+  )
+
+  const isNearBubble = useCallback(
+    (x: number, y: number) => {
+      const rect = getBubbleRect()
+      return rect ? pointInRect(x, y, rect, BUBBLE_NEAR_PADDING_PX) : false
+    },
+    [getBubbleRect],
+  )
+
+  const updateBubbleProximity = useCallback(
+    (x: number, y: number) => {
+      setIsBubbleHover(isOverBubble(x, y))
+      setIsBubbleNear(isNearBubble(x, y))
+    },
+    [isOverBubble, isNearBubble],
+  )
+
+  const clearBubbleProximity = useCallback(() => {
+    setIsBubbleHover(false)
+    setIsBubbleNear(false)
   }, [])
 
   const addToBubble = useCallback((ingredient: Ingredient) => {
@@ -100,6 +139,15 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const tryAddAtDrop = useCallback(
+    (x: number, y: number, ingredient: Ingredient) => {
+      if (!isNearBubble(x, y)) return false
+      addToBubble(ingredient)
+      return true
+    },
+    [isNearBubble, addToBubble],
+  )
+
   const removeFromBubble = useCallback((id: string) => {
     setBubbleIngredients((prev) => prev.filter((i) => i.id !== id))
   }, [])
@@ -108,10 +156,13 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
     setBubbleIngredients([])
   }, [])
 
-  const beginStorageDrag = useCallback((ingredient: Ingredient, x: number, y: number) => {
-    setActiveDrag({ ingredient, source: 'storage', x, y, startX: x, startY: y })
-    setIsBubbleHover(isOverBubble(x, y))
-  }, [isOverBubble])
+  const beginStorageDrag = useCallback(
+    (ingredient: Ingredient, x: number, y: number) => {
+      setActiveDrag({ ingredient, source: 'storage', x, y, startX: x, startY: y })
+      updateBubbleProximity(x, y)
+    },
+    [updateBubbleProximity],
+  )
 
   const beginBubbleDrag = useCallback((ingredient: Ingredient, x: number, y: number) => {
     setActiveDrag({ ingredient, source: 'bubble', x, y, startX: x, startY: y })
@@ -121,9 +172,9 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
   const updateDrag = useCallback(
     (x: number, y: number) => {
       setActiveDrag((prev) => (prev ? { ...prev, x, y } : null))
-      setIsBubbleHover(isOverBubble(x, y))
+      updateBubbleProximity(x, y)
     },
-    [isOverBubble],
+    [updateBubbleProximity],
   )
 
   const endDrag = useCallback(
@@ -133,7 +184,7 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
         const over = isOverBubble(x, y)
         const moved = Math.hypot(x - prev.startX, y - prev.startY)
 
-        if (prev.source === 'storage' && over) {
+        if (prev.source === 'storage' && (over || isNearBubble(x, y))) {
           setBubbleIngredients((items) => {
             if (items.some((i) => i.id === prev.ingredient.id)) return items
             return [...items, prev.ingredient]
@@ -143,15 +194,15 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
         }
         return null
       })
-      setIsBubbleHover(false)
+      clearBubbleProximity()
     },
-    [isOverBubble],
+    [isOverBubble, isNearBubble, clearBubbleProximity],
   )
 
   const cancelDrag = useCallback(() => {
     setActiveDrag(null)
-    setIsBubbleHover(false)
-  }, [])
+    clearBubbleProximity()
+  }, [clearBubbleProximity])
 
   const createStoragePointerHandlers = useCallback(
     (
@@ -197,13 +248,8 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
           const dy = e.clientY - startY
           if (mode === 'pending' && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
             clearLongPress()
-            if (Math.abs(dx) >= Math.abs(dy)) {
-              mode = 'bubble'
-              beginStorageDrag(ingredient, e.clientX, e.clientY)
-            } else {
-              mode = 'idle'
-              e.currentTarget.releasePointerCapture(e.pointerId)
-            }
+            mode = 'bubble'
+            beginStorageDrag(ingredient, e.clientX, e.clientY)
           } else if (mode === 'bubble') {
             updateDrag(e.clientX, e.clientY)
           } else if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
@@ -287,6 +333,10 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
       isOverBubble,
       activeDrag,
       isBubbleHover,
+      isBubbleNear,
+      updateBubbleProximity,
+      clearBubbleProximity,
+      tryAddAtDrop,
       beginStorageDrag,
       updateDrag,
       endDrag,
@@ -303,6 +353,10 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
       isOverBubble,
       activeDrag,
       isBubbleHover,
+      isBubbleNear,
+      updateBubbleProximity,
+      clearBubbleProximity,
+      tryAddAtDrop,
       beginStorageDrag,
       updateDrag,
       endDrag,

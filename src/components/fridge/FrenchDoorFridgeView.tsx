@@ -8,7 +8,7 @@ import { StoragePageShell } from '@/components/storage/StoragePageShell'
 import { useSuppressGlobalAddFab } from '@/contexts/GlobalAddFabContext'
 import { useIngredients } from '@/hooks/useIngredients'
 import type { ColdStorageLocation, FridgeUnitId, Ingredient } from '@/types'
-import { FRIDGE_UNITS } from '@/types'
+import { FRIDGE_UNITS, normalizeStorageLocation } from '@/types'
 import { parseCompartmentIndex, parseLevelIndex } from '@/lib/navigation'
 
 interface FrenchDoorFridgeViewProps {
@@ -49,12 +49,17 @@ export function FrenchDoorFridgeView({ unitId }: FrenchDoorFridgeViewProps) {
   }, [searchParams, unitId, focusIngredientId, ingredients, compartments])
 
   const byLocation = useMemo(() => {
-    const items = ingredients.filter(
-      (i) => i.location === freezerLoc || i.location === fridgeLoc,
-    )
+    const items = ingredients.filter((i) => {
+      const loc = normalizeStorageLocation(i.location as string)
+      return loc === freezerLoc || loc === fridgeLoc
+    })
     return {
-      [freezerLoc]: items.filter((i) => i.location === freezerLoc),
-      [fridgeLoc]: items.filter((i) => i.location === fridgeLoc),
+      [freezerLoc]: items.filter(
+        (i) => normalizeStorageLocation(i.location as string) === freezerLoc,
+      ),
+      [fridgeLoc]: items.filter(
+        (i) => normalizeStorageLocation(i.location as string) === fridgeLoc,
+      ),
     } as Record<ColdStorageLocation, Ingredient[]>
   }, [ingredients, freezerLoc, fridgeLoc])
 

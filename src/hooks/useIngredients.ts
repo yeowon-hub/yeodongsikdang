@@ -1,23 +1,48 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { v4 as uuidv4 } from 'uuid'
 import { db, enqueueSync } from '@/lib/db'
+import { useAuth } from '@/hooks/useSync'
+import { useHousehold, getActiveHouseholdId } from '@/contexts/HouseholdContext'
+import { useSyncTrigger } from '@/contexts/SyncContext'
 import type { Ingredient, StorageLocation } from '@/types'
+import { normalizeIngredient } from '@/types'
 
 export function useIngredients(location?: StorageLocation) {
+  const { user } = useAuth()
+  const { household } = useHousehold()
+  const { sync } = useSyncTrigger()
+  const activeHouseholdId = household?.id ?? getActiveHouseholdId()
+
   const ingredients = useLiveQuery(async () => {
-    if (location) {
-      return db.ingredients.where('location').equals(location).toArray()
+    const all = location
+      ? await db.ingredients.where('location').equals(location).toArray()
+      : await db.ingredients.toArray()
+
+    if (activeHouseholdId) {
+      return all
+        .map(normalizeIngredient)
+        .filter(
+          (item) =>
+            item.householdId === activeHouseholdId ||
+            (!item.householdId && !item.synced),
+        )
     }
-    return db.ingredients.toArray()
-  }, [location])
+
+    return all
+      .map(normalizeIngredient)
+      .filter((item) => !item.householdId || item.userId === user?.id)
+  }, [location, activeHouseholdId, user?.id])
 
   const addIngredient = async (
     data: Omit<Ingredient, 'id' | 'createdAt' | 'updatedAt' | 'synced'>,
   ) => {
     const now = new Date().toISOString()
+    const activeHouseholdId = household?.id ?? getActiveHouseholdId() ?? undefined
     const ingredient: Ingredient = {
       ...data,
       id: uuidv4(),
+      userId: user?.id,
+      householdId: activeHouseholdId,
       createdAt: now,
       updatedAt: now,
       synced: false,
@@ -29,6 +54,7 @@ export function useIngredients(location?: StorageLocation) {
       action: 'create',
       payload: ingredient as unknown as Record<string, unknown>,
     })
+    void sync()
     return ingredient
   }
 
@@ -49,6 +75,7 @@ export function useIngredients(location?: StorageLocation) {
       action: 'update',
       payload: updated as unknown as Record<string, unknown>,
     })
+    void sync()
   }
 
   const deleteIngredient = async (id: string) => {
@@ -58,6 +85,7 @@ export function useIngredients(location?: StorageLocation) {
       recordId: id,
       action: 'delete',
     })
+    void sync()
   }
 
   const moveIngredient = async (id: string, newLocation: StorageLocation) => {
@@ -80,17 +108,31 @@ export function useIngredients(location?: StorageLocation) {
 }
 
 export function useExpiringCount() {
+  const { user } = useAuth()
+  const { household } = useHousehold()
+
   return useLiveQuery(async () => {
     const all = await db.ingredients.toArray()
+    let visible = all
+    if (household?.id) {
+      visible = all.filter(
+        (item) =>
+          item.householdId === household.id ||
+          (!item.householdId && !item.synced),
+      )
+    } else {
+      visible = all.filter((item) => !item.householdId || item.userId === user?.id)
+    }
+
     const now = new Date()
     now.setHours(0, 0, 0, 0)
     const threshold = new Date(now)
     threshold.setDate(threshold.getDate() + 3)
-    return all.filter((i) => {
+    return visible.filter((i) => {
       if (!i.expiryDate) return false
       const expiry = new Date(i.expiryDate)
       expiry.setHours(0, 0, 0, 0)
       return expiry <= threshold
     }).length
-  })
+  }, [household?.id, user?.id])
 }

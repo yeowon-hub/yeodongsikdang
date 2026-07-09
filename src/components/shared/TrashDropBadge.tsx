@@ -15,7 +15,7 @@ export function TrashDropBadge() {
   const drag = useIngredientDragOptional()
   if (!drag || !isStoragePath(location.pathname)) return null
 
-  const { trashDropRef, levelDrag, isTrashHover } = drag
+  const { trashDropRef, levelDrag, isTrashHover, isTrashNear } = drag
   const dragging = levelDrag !== null
 
   return (
@@ -28,9 +28,11 @@ export function TrashDropBadge() {
         className={`pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-lg transition-transform duration-200 ${
           isTrashHover
             ? 'scale-110 bg-red-500 text-white ring-4 ring-red-300/50'
-            : dragging
-              ? 'text-black ring-2 ring-header/30'
-              : 'text-black ring-1 ring-black/10'
+            : isTrashNear
+              ? 'scale-105 text-black ring-2 ring-red-300/60'
+              : dragging
+                ? 'text-black ring-2 ring-header/30'
+                : 'text-black ring-1 ring-black/10'
         }`}
         aria-label="재료 삭제"
       >

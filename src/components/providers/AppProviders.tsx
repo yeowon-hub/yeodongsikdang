@@ -1,15 +1,7 @@
 import { useAuth } from '@/hooks/useSync'
 import { HouseholdProvider } from '@/contexts/HouseholdContext'
-import { useHousehold } from '@/contexts/HouseholdContext'
 import { ProfileProvider } from '@/contexts/ProfileContext'
-import { useSync } from '@/hooks/useSync'
-
-function SyncInner({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
-  const { household } = useHousehold()
-  useSync(user, household?.id ?? null)
-  return <>{children}</>
-}
+import { SyncProvider } from '@/contexts/SyncContext'
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
@@ -17,7 +9,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ProfileProvider user={user}>
       <HouseholdProvider user={user}>
-        <SyncInner>{children}</SyncInner>
+        <SyncProvider>{children}</SyncProvider>
       </HouseholdProvider>
     </ProfileProvider>
   )

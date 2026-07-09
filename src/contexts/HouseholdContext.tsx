@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { requestSync } from '@/lib/syncEvents'
 import type { Household } from '@/types'
 
 const ACTIVE_HOUSEHOLD_KEY = 'yeodong_active_household_id'
@@ -67,7 +68,7 @@ function parseHousehold(data: Record<string, unknown>): Household {
 
 export function HouseholdProvider({ user, children }: { user: User | null; children: React.ReactNode }) {
   const [household, setHousehold] = useState<Household | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(Boolean(user))
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
@@ -137,6 +138,7 @@ export function HouseholdProvider({ user, children }: { user: User | null; child
         const parsed = parseHousehold(row)
         setHousehold(parsed)
         localStorage.setItem(ACTIVE_HOUSEHOLD_KEY, parsed.id)
+        requestSync({ force: true })
         return parsed
       } catch (err) {
         console.error('createHousehold error:', err)
@@ -166,6 +168,7 @@ export function HouseholdProvider({ user, children }: { user: User | null; child
         const parsed = parseHousehold(row)
         setHousehold(parsed)
         localStorage.setItem(ACTIVE_HOUSEHOLD_KEY, parsed.id)
+        requestSync({ force: true })
         return parsed
       } catch (err) {
         setError(formatHouseholdError(err))

@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Copy, Check, Users, Home, UserPlus } from 'lucide-react'
+import { Copy, Check, Users, Home, UserPlus, RefreshCw } from 'lucide-react'
 import { useHousehold } from '@/contexts/HouseholdContext'
+import { useSyncTrigger } from '@/contexts/SyncContext'
 
 export function HouseholdPanel() {
-  const { household, loading, error, createHousehold, joinHousehold, clearError } = useHousehold()
+  const { household, loading, error, createHousehold, joinHousehold, clearError, refresh } =
+    useHousehold()
+  const { sync, syncing, lastSynced, lastSyncError, syncStats } = useSyncTrigger()
   const [mode, setMode] = useState<'create' | 'join'>('create')
   const [familyName, setFamilyName] = useState('우리 집')
   const [inviteCode, setInviteCode] = useState('')
@@ -32,6 +35,11 @@ export function HouseholdPanel() {
     await navigator.clipboard.writeText(household.inviteCode)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleManualSync = async () => {
+    await refresh()
+    await sync({ force: true })
   }
 
   if (loading && !household) {
@@ -90,6 +98,30 @@ export function HouseholdPanel() {
           <p className="mt-4 text-xs leading-relaxed text-gray-500">
             같은 가족에 속한 계정은 냉장고 재료와 내 레시피가 자동으로 동기화됩니다.
           </p>
+
+          <button
+            type="button"
+            onClick={handleManualSync}
+            disabled={syncing}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-header/30 bg-header/5 py-3 text-sm font-semibold text-header-text hover:bg-header/15 disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
+            {syncing ? '동기화 중...' : '지금 동기화'}
+          </button>
+          {lastSynced && (
+            <p className="mt-2 text-center text-xs text-gray-400">
+              마지막 동기화: {lastSynced.toLocaleTimeString('ko-KR')}
+            </p>
+          )}
+          {syncStats && (
+            <p className="mt-1 text-center text-xs text-gray-500">
+              서버 재료 {syncStats.remoteIngredients}개 · 내 기기 {syncStats.localIngredients}개
+              {syncStats.pendingItems > 0 ? ` · 업로드 대기 ${syncStats.pendingItems}개` : ''}
+            </p>
+          )}
+          {lastSyncError && (
+            <p className="mt-2 text-center text-xs text-red-500">{lastSyncError}</p>
+          )}
         </div>
       </div>
     )

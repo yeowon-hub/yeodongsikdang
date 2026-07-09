@@ -49,6 +49,12 @@ class YeodongDB extends Dexie {
 export const db = new YeodongDB()
 
 export async function enqueueSync(item: Omit<SyncQueueItem, 'id' | 'createdAt'>) {
+  const existing = await db.syncQueue.where('recordId').equals(item.recordId).toArray()
+  for (const row of existing) {
+    if (row.table === item.table && row.id !== undefined) {
+      await db.syncQueue.delete(row.id)
+    }
+  }
   await db.syncQueue.add({
     ...item,
     createdAt: new Date().toISOString(),
@@ -56,9 +62,33 @@ export async function enqueueSync(item: Omit<SyncQueueItem, 'id' | 'createdAt'>)
 }
 
 export async function getPendingSyncItems() {
-  return db.syncQueue.orderBy('createdAt').toArray()
+  const all = await db.syncQueue.orderBy('createdAt').toArray()
+  const latestByKey = new Map<string, SyncQueueItem>()
+  for (const item of all) {
+    latestByKey.set(`${item.table}:${item.recordId}`, item)
+  }
+  return all.filter((item) => latestByKey.get(`${item.table}:${item.recordId}`) === item)
+}
+
+export async function clearSyncItemsForRecord(table: SyncQueueItem['table'], recordId: string) {
+  const existing = await db.syncQueue.where('recordId').equals(recordId).toArray()
+  for (const row of existing) {
+    if (row.table === table && row.id !== undefined) {
+      await db.syncQueue.delete(row.id)
+    }
+  }
 }
 
 export async function clearSyncItem(id: number) {
   await db.syncQueue.delete(id)
+}
+
+/** 로그아웃·계정 전환 시 이전 사용자 로컬 데이터 제거 (내장 레시피는 유지) */
+export async function clearUserLocalData() {
+  await db.ingredients.clear()
+  const customRecipes = await db.recipes.filter((r) => !r.isBuiltin).toArray()
+  if (customRecipes.length > 0) {
+    await db.recipes.bulkDelete(customRecipes.map((r) => r.id))
+  }
+  await db.syncQueue.clear()
 }

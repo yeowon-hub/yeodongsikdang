@@ -40,6 +40,7 @@ export function RecipeBubble() {
     clearBubble,
     bubbleDropRef,
     isBubbleHover,
+    isBubbleNear,
     activeDrag,
   } = useRecipeBubble()
   const { recipes } = useRecipes()
@@ -57,7 +58,7 @@ export function RecipeBubble() {
           <div
             ref={bubbleDropRef}
             className={`flex flex-col items-end gap-1.5 transition-all ${
-              isBubbleHover ? 'scale-[1.02]' : ''
+              isBubbleHover ? 'scale-[1.02]' : isBubbleNear ? 'scale-[1.01]' : ''
             }`}
           >
             <div className="relative">
@@ -89,7 +90,11 @@ export function RecipeBubble() {
 
               <div
                 className={`flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-lg ring-1 ring-black/5 ${
-                  isBubbleHover ? 'ring-2 ring-header' : ''
+                  isBubbleHover
+                    ? 'ring-2 ring-header'
+                    : isBubbleNear
+                      ? 'ring-2 ring-header/40'
+                      : ''
                 }`}
               >
                 <MessageCircle
@@ -115,7 +120,9 @@ export function RecipeBubble() {
       {activeDrag &&
         createPortal(
           <div
-            className="pointer-events-none fixed z-[90] -translate-x-1/2 -translate-y-1/2"
+            className={`pointer-events-none fixed z-[90] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-150 ${
+              activeDrag.source === 'storage' && isBubbleNear ? 'opacity-35' : 'opacity-100'
+            }`}
             style={{ left: activeDrag.x, top: activeDrag.y }}
           >
             {activeDrag.source === 'storage' ? (

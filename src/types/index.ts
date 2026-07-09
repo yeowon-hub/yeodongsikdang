@@ -209,3 +209,29 @@ export const LEGACY_LOCATION_MAP: Record<string, StorageLocation> = {
   fridge2: 'kimchi_fridge',
   freezer: 'general_freezer',
 }
+
+export function normalizeStorageLocation(location: string): StorageLocation {
+  if ((ALL_STORAGE_LOCATIONS as readonly string[]).includes(location)) {
+    return location as StorageLocation
+  }
+  return LEGACY_LOCATION_MAP[location] ?? 'general_fridge'
+}
+
+/** Supabase에 구 location CHECK만 있을 때 업로드용 */
+export function toLegacyPushLocation(location: StorageLocation): string {
+  const map: Partial<Record<StorageLocation, string>> = {
+    general_fridge: 'fridge1',
+    general_freezer: 'freezer',
+    kimchi_fridge: 'fridge2',
+    kimchi_freezer: 'freezer',
+    shelf: 'shelf',
+    pantry: 'shelf',
+  }
+  return map[location] ?? 'fridge1'
+}
+
+export function normalizeIngredient(item: Ingredient): Ingredient {
+  const location = normalizeStorageLocation(item.location as string)
+  if (location === item.location) return item
+  return { ...item, location }
+}

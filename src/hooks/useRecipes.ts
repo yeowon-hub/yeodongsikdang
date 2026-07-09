@@ -1,14 +1,29 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { v4 as uuidv4 } from 'uuid'
 import { db, enqueueSync } from '@/lib/db'
+import { useAuth } from '@/hooks/useSync'
+import { useHousehold } from '@/contexts/HouseholdContext'
+import { useSyncTrigger } from '@/contexts/SyncContext'
 import type { Recipe } from '@/types'
 
 export function useRecipes() {
+  const { user } = useAuth()
+  const { household } = useHousehold()
+  const { sync } = useSyncTrigger()
+
   const recipes = useLiveQuery(() => db.recipes.toArray())
 
-  const myRecipes = useLiveQuery(() =>
-    db.recipes.filter((r) => !r.isBuiltin).toArray(),
-  )
+  const myRecipes = useLiveQuery(async () => {
+    const all = await db.recipes.filter((r) => !r.isBuiltin).toArray()
+    if (household?.id) {
+      return all.filter(
+        (item) =>
+          item.householdId === household.id ||
+          (!item.householdId && !item.synced),
+      )
+    }
+    return all.filter((item) => !item.householdId || item.userId === user?.id)
+  }, [household?.id, user?.id])
 
   const builtinRecipes = useLiveQuery(() =>
     db.recipes.filter((r) => r.isBuiltin).toArray(),
@@ -21,6 +36,8 @@ export function useRecipes() {
     const recipe: Recipe = {
       ...data,
       id: uuidv4(),
+      userId: user?.id,
+      householdId: household?.id,
       isBuiltin: false,
       createdAt: now,
       updatedAt: now,
@@ -33,6 +50,7 @@ export function useRecipes() {
       action: 'create',
       payload: recipe as unknown as Record<string, unknown>,
     })
+    void sync()
     return recipe
   }
 
@@ -53,6 +71,7 @@ export function useRecipes() {
       action: 'update',
       payload: updated as unknown as Record<string, unknown>,
     })
+    void sync()
   }
 
   const deleteRecipe = async (id: string) => {
@@ -64,6 +83,7 @@ export function useRecipes() {
       recordId: id,
       action: 'delete',
     })
+    void sync()
   }
 
   const getRecipe = async (id: string) => {

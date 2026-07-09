@@ -57,16 +57,15 @@ export function LevelStackInterior({
     startX: number
     startY: number
     dragging: boolean
-    bubbleDrag: boolean
   } | null>(null)
 
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dropLevel, setDropLevel] = useState<number | null>(null)
   const recipeBubble = useRecipeBubbleOptional()
   const ingredientDrag = useIngredientDragOptional()
-  const activeBubbleDrag = recipeBubble?.activeDrag ?? null
   const levelDrag = ingredientDrag?.levelDrag ?? null
   const isTrashNear = ingredientDrag?.isTrashNear ?? false
+  const isBubbleNear = recipeBubble?.isBubbleNear ?? false
 
   useEffect(() => {
     if (focusIngredientId === undefined && focusLevel === undefined) return
@@ -107,6 +106,7 @@ export function LevelStackInterior({
 
     if (!drag?.dragging) {
       ingredientDrag?.cancelLevelDrag()
+      recipeBubble?.clearBubbleProximity()
       return
     }
 
@@ -114,10 +114,14 @@ export function LevelStackInterior({
     if (droppedOnTrash && onIngredientDelete) {
       onIngredientDelete(drag.id)
       recipeBubble?.removeFromBubble(drag.id)
+      recipeBubble?.clearBubbleProximity()
       return
     }
 
-    ingredientDrag?.cancelLevelDrag()
+    const droppedOnBubble =
+      recipeBubble?.tryAddAtDrop(clientX, clientY, drag.item) ?? false
+    recipeBubble?.clearBubbleProximity()
+    if (droppedOnBubble) return
     if (!onIngredientMoveToLevel) return
     const targetLevel = findLevelAtY(clientY) ?? drag.fromLevel
     if (targetLevel !== drag.fromLevel) {
@@ -139,7 +143,6 @@ export function LevelStackInterior({
       startX: e.clientX,
       startY: e.clientY,
       dragging: false,
-      bubbleDrag: false,
     }
   }
 
@@ -149,36 +152,22 @@ export function LevelStackInterior({
 
     const dx = e.clientX - drag.startX
     const dy = e.clientY - drag.startY
-    if (!drag.dragging && !drag.bubbleDrag && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
-      if (Math.abs(dy) > Math.abs(dx) && (onIngredientMoveToLevel || onIngredientDelete)) {
-        drag.dragging = true
-        setDraggingId(drag.id)
-        ingredientDrag?.beginLevelDrag(item, e.clientX, e.clientY)
-      } else if (Math.abs(dx) >= Math.abs(dy) && recipeBubble) {
-        drag.bubbleDrag = true
-        recipeBubble.beginStorageDrag(item, e.clientX, e.clientY)
-      } else {
-        dragRef.current = null
-        return
-      }
+    if (!drag.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+      drag.dragging = true
+      setDraggingId(drag.id)
+      ingredientDrag?.beginLevelDrag(item, e.clientX, e.clientY)
+      recipeBubble?.updateBubbleProximity(e.clientX, e.clientY)
     }
     if (drag.dragging) {
       ingredientDrag?.updateLevelDrag(e.clientX, e.clientY)
+      recipeBubble?.updateBubbleProximity(e.clientX, e.clientY)
       setDropLevel(findLevelAtY(e.clientY))
-    } else if (drag.bubbleDrag && recipeBubble) {
-      recipeBubble.updateDrag(e.clientX, e.clientY)
     }
   }
 
   const handlePointerUp = (e: React.PointerEvent, item: Ingredient) => {
     const drag = dragRef.current
     if (!drag) return
-
-    if (drag.bubbleDrag && recipeBubble) {
-      recipeBubble.endDrag(e.clientX, e.clientY)
-      dragRef.current = null
-      return
-    }
 
     if (!drag.dragging) {
       dragRef.current = null
@@ -266,11 +255,6 @@ export function LevelStackInterior({
                           }}
                           className={`shrink-0 touch-none select-none transition-opacity ${
                             isDragging ? 'opacity-0' : ''
-                          } ${
-                            activeBubbleDrag?.ingredient.id === item.id &&
-                            activeBubbleDrag.source === 'storage'
-                              ? 'opacity-40'
-                              : ''
                           }`}
                           onPointerDown={
                             canDrag ? (e) => handlePointerDown(e, item, level) : undefined
@@ -281,8 +265,10 @@ export function LevelStackInterior({
                             canDrag
                               ? (e) => {
                                   if (dragRef.current?.dragging) finishDrag(e.clientX, e.clientY)
-                                  else if (dragRef.current?.bubbleDrag) recipeBubble?.cancelDrag()
-                                  else ingredientDrag?.cancelLevelDrag()
+                                  else {
+                                    ingredientDrag?.cancelLevelDrag()
+                                    recipeBubble?.clearBubbleProximity()
+                                  }
                                   dragRef.current = null
                                 }
                               : undefined
@@ -322,7 +308,7 @@ export function LevelStackInterior({
         createPortal(
           <div
             className={`pointer-events-none fixed z-[90] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-150 ${
-              isTrashNear ? 'opacity-35' : 'opacity-100'
+              isTrashNear || isBubbleNear ? 'opacity-35' : 'opacity-100'
             }`}
             style={{ left: levelDrag.x, top: levelDrag.y }}
           >

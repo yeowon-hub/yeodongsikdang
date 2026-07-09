@@ -82,7 +82,9 @@ export function IngredientDragProvider({ children }: { children: ReactNode }) {
   const endLevelDrag = useCallback(
     (x: number, y: number) => {
       const el = trashDropRef.current
-      const overTrash = el ? pointInRect(x, y, el.getBoundingClientRect()) : false
+      const overTrash = el
+        ? pointInRect(x, y, el.getBoundingClientRect(), TRASH_NEAR_PADDING_PX)
+        : false
       setLevelDrag(null)
       setIsTrashHover(false)
       setIsTrashNear(false)

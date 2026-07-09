@@ -5,7 +5,7 @@ import { useIngredients } from '@/hooks/useIngredients'
 import { useRecipes } from '@/hooks/useRecipes'
 import { getIngredientRoute, getRecipeRoute } from '@/lib/navigation'
 import { matchesSearchText } from '@/lib/search'
-import { STORAGE_META } from '@/types'
+import { STORAGE_META, normalizeStorageLocation } from '@/types'
 import type { Recipe } from '@/types'
 
 function normalizeQuery(q: string) {
@@ -42,7 +42,7 @@ export function GlobalSearch({ overlay = false }: GlobalSearchProps) {
         type: 'ingredient' as const,
         id: i.id,
         title: i.name,
-        subtitle: STORAGE_META[i.location].label,
+        subtitle: STORAGE_META[normalizeStorageLocation(i.location as string)].label,
         route: getIngredientRoute(i),
       }))
 
