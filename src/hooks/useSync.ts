@@ -14,6 +14,7 @@ import {
 import type { Ingredient, Recipe } from '@/types'
 import { normalizeStorageLocation, toLegacyPushLocation } from '@/types'
 import { normalizeRecipeIngredients, normalizeRecipeSteps } from '@/lib/recipeIngredients'
+import { canSyncRecipeToServer, recipeFromRemoteRow } from '@/lib/recipeSync'
 
 function toDbIngredient(row: Record<string, unknown>): Ingredient {
   return {
@@ -296,12 +297,9 @@ export function useSync(user: User | null, householdId: string | null, household
       const item = toDbRecipe(row)
       if (item.isBuiltin) continue
       const local = await db.recipes.get(item.id)
-      if (shouldApplyRemote(local, item, householdId)) {
-        await db.recipes.put({
-          ...item,
-          householdId: item.householdId ?? householdId ?? undefined,
-          synced: true,
-        })
+      const remoteRecipe = recipeFromRemoteRow(item, householdId)
+      if (shouldApplyRemote(local, remoteRecipe, householdId)) {
+        await db.recipes.put(remoteRecipe)
       }
     }
 
@@ -344,7 +342,7 @@ export function useSync(user: User | null, householdId: string | null, household
             if (error) throw error
           } else {
             const localRec = await db.recipes.get(item.recordId)
-            if (!localRec || localRec.isBuiltin) {
+            if (!localRec || !canSyncRecipeToServer(localRec)) {
               if (item.id) await clearSyncItem(item.id)
               await clearSyncItemsForRecord(item.table, item.recordId)
               continue

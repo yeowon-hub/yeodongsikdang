@@ -1,5 +1,6 @@
 import { db, enqueueSync, getPendingSyncItems } from '@/lib/db'
 import { supabase } from '@/lib/supabase'
+import { canSyncRecipeToServer } from '@/lib/recipeSync'
 import type { Ingredient, Recipe } from '@/types'
 import { normalizeStorageLocation } from '@/types'
 
@@ -103,7 +104,9 @@ export async function ensureLocalItemsHaveHousehold(householdId: string) {
     }
   }
 
-  const recipes = await db.recipes.filter((item) => !item.isBuiltin && !item.householdId).toArray()
+  const recipes = await db.recipes
+    .filter((item) => canSyncRecipeToServer(item) && !item.householdId)
+    .toArray()
   for (const item of recipes) {
     const updated: Recipe = {
       ...item,

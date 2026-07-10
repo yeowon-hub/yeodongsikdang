@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { v4 as uuidv4 } from 'uuid'
 import { db, enqueueSync } from '@/lib/db'
+import { canSyncRecipeToServer } from '@/lib/recipeSync'
 import { useAuth } from '@/hooks/useSync'
 import { useHousehold } from '@/contexts/HouseholdContext'
 import { useSyncTrigger } from '@/contexts/SyncContext'
@@ -57,17 +58,19 @@ export function useRecipes() {
   const updateRecipe = async (id: string, updates: Partial<Recipe>) => {
     const existing = await db.recipes.get(id)
     if (!existing) return
+    const shouldSync = canSyncRecipeToServer(existing) && (!existing.isBuiltin || Boolean(household?.id))
     const updated: Recipe = {
       ...existing,
       ...updates,
       id,
       isBuiltin: existing.isBuiltin,
       builtinCustomized: existing.isBuiltin ? true : existing.builtinCustomized,
+      householdId: existing.householdId ?? household?.id,
       updatedAt: new Date().toISOString(),
-      synced: existing.isBuiltin ? true : false,
+      synced: shouldSync ? false : true,
     }
     await db.recipes.put(updated)
-    if (!existing.isBuiltin) {
+    if (shouldSync) {
       await enqueueSync({
         table: 'recipes',
         recordId: id,
