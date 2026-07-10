@@ -15,7 +15,7 @@ import { seedIfNeeded } from '@/lib/seed'
 
 export default function App() {
   useEffect(() => {
-    seedIfNeeded()
+    void seedIfNeeded()
   }, [])
 
   return (

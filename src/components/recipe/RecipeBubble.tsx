@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageCircle } from 'lucide-react'
 import { useRecipeBubble } from '@/contexts/RecipeBubbleContext'
@@ -6,14 +6,11 @@ import { useRecipes } from '@/hooks/useRecipes'
 import { recommendRecipesForSelection } from '@/lib/recommend'
 import { IngredientCard } from '@/components/fridge/IngredientCard'
 import { RecipeBubbleResults } from './RecipeBubbleResults'
-import type { Ingredient } from '@/types'
+import type { Ingredient, RecipeMatch } from '@/types'
 
 function BubbleIngredientBadge({ ingredient }: { ingredient: Ingredient }) {
   const { createBubblePointerHandlers, activeDrag } = useRecipeBubble()
-  const handlers = useMemo(
-    () => createBubblePointerHandlers(ingredient),
-    [createBubblePointerHandlers, ingredient],
-  )
+  const handlers = createBubblePointerHandlers(ingredient)
 
   return (
     <div
@@ -43,18 +40,15 @@ export function RecipeBubble() {
     isBubbleNear,
     activeDrag,
   } = useRecipeBubble()
-  const { myRecipes, builtinRecipes } = useRecipes()
+  const { recipes } = useRecipes()
   const [resultsOpen, setResultsOpen] = useState(false)
+  const [matches, setMatches] = useState<RecipeMatch[]>([])
 
-  const searchableRecipes = useMemo(
-    () => [...builtinRecipes, ...myRecipes],
-    [builtinRecipes, myRecipes],
-  )
-
-  const matches = useMemo(
-    () => recommendRecipesForSelection(searchableRecipes, bubbleIngredients),
-    [searchableRecipes, bubbleIngredients],
-  )
+  const openResults = () => {
+    if (bubbleIngredients.length === 0) return
+    setMatches(recommendRecipesForSelection(recipes, bubbleIngredients))
+    setResultsOpen(true)
+  }
 
   return (
     <>
@@ -70,10 +64,7 @@ export function RecipeBubble() {
               <div className="mb-1 flex justify-end gap-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (bubbleIngredients.length === 0) return
-                    setResultsOpen(true)
-                  }}
+                  onClick={openResults}
                   disabled={bubbleIngredients.length === 0}
                   className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-header-text shadow-md ring-1 ring-black/10 transition-transform active:scale-95 disabled:opacity-40"
                   aria-label="추천 레시피 보기"

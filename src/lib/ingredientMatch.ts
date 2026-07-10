@@ -5,7 +5,11 @@
  */
 
 export function normalizeIngredientName(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, '')
+  return name
+    .normalize('NFKC')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '')
 }
 
 /** 같은 재료로 취급할 이름 묶음 (첫 항목이 대표 이름) */
