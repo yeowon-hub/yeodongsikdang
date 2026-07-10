@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Camera, Image, Menu, Plus, Trash2, X } from 'lucide-react'
 import { useDragReorder } from '@/hooks/useDragReorder'
 import { compressImageToDataUrl } from '@/lib/image'
@@ -62,6 +63,7 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
   const [imageUrl, setImageUrl] = useState<string | undefined>(initial?.imageUrl)
   const [imageError, setImageError] = useState('')
   const [photoSourceOpen, setPhotoSourceOpen] = useState(false)
+  const [imageLoading, setImageLoading] = useState(false)
 
   const ingredientNameRefs = useRef<Array<HTMLInputElement | null>>([])
   const stepTextRefs = useRef<Array<HTMLInputElement | null>>([])
@@ -92,6 +94,7 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
     setImageUrl(initial?.imageUrl)
     setImageError('')
     setPhotoSourceOpen(false)
+    setImageLoading(false)
   }, [initial, open])
 
   if (!open) return null
@@ -122,16 +125,27 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
 
   const handleImagePick = async (file: File | undefined) => {
     if (!file) return
-    if (!file.type.startsWith('image/')) {
+    setPhotoSourceOpen(false)
+    const looksLikeImage =
+      file.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(file.name)
+    if (!looksLikeImage) {
       setImageError('이미지 파일만 올릴 수 있어요')
       return
     }
+    setImageLoading(true)
+    setImageError('')
     try {
-      setImageError('')
       setImageUrl(await compressImageToDataUrl(file, 640))
     } catch {
       setImageError('사진을 불러오지 못했어요')
+    } finally {
+      setImageLoading(false)
     }
+  }
+
+  const openCameraPicker = () => {
+    cameraInputRef.current?.click()
+    setPhotoSourceOpen(false)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -159,13 +173,50 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
     onClose()
   }
 
-  return (
+  return createPortal(
     <>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40">
-        <div className="relative mx-auto min-h-full max-w-lg bg-white p-6">
-          <div className="mb-4 flex items-center justify-between gap-2">
+      <div
+        className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/40 sm:items-center sm:justify-center sm:p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recipe-form-title"
+      >
+        <button
+          type="button"
+          className="absolute inset-0 cursor-default"
+          aria-label="닫기"
+          onClick={onClose}
+        />
+
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="sr-only"
+          tabIndex={-1}
+          onChange={(e) => {
+            void handleImagePick(e.target.files?.[0])
+            e.target.value = ''
+          }}
+        />
+        <input
+          ref={galleryInputRef}
+          id="recipe-form-gallery-input"
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          tabIndex={-1}
+          onChange={(e) => {
+            void handleImagePick(e.target.files?.[0])
+            e.target.value = ''
+          }}
+        />
+
+        <div className="relative z-10 flex w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl max-h-[min(92dvh,100%)]">
+          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-100 px-4 pb-3 pt-5 sm:px-5">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              <h3 className="shrink-0 text-lg font-bold">
+              <h3 id="recipe-form-title" className="shrink-0 text-lg font-bold">
                 {initial ? '레시피 수정' : '레시피 작성'}
               </h3>
               {initial && (
@@ -192,12 +243,13 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
                 </>
               )}
             </div>
-            <button type="button" onClick={onClose} className="shrink-0 rounded-full p-1 hover:bg-gray-100">
+            <button type="button" onClick={onClose} className="shrink-0 rounded-full p-2 hover:bg-gray-100">
               <X size={20} />
             </button>
           </div>
 
-          <form id="recipe-form" onSubmit={handleSubmit} className="space-y-4 pb-8">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5">
+          <form id="recipe-form" onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
               value={title}
@@ -209,27 +261,6 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">사진 (선택)</label>
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={(e) => {
-                  void handleImagePick(e.target.files?.[0])
-                  e.target.value = ''
-                }}
-              />
-              <input
-                ref={galleryInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  void handleImagePick(e.target.files?.[0])
-                  e.target.value = ''
-                }}
-              />
               {imageUrl ? (
                 <div className="relative">
                   <img
@@ -245,6 +276,10 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
                   >
                     <X size={14} />
                   </button>
+                </div>
+              ) : imageLoading ? (
+                <div className="flex h-40 w-full items-center justify-center rounded-xl border-2 border-dashed border-header/40 bg-header/5 text-sm text-header-text">
+                  사진 처리 중...
                 </div>
               ) : (
                 <button
@@ -503,9 +538,10 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
               저장
             </button>
           </form>
+          </div>
 
           {photoSourceOpen && (
-            <div className="absolute inset-0 z-10 flex flex-col justify-end">
+            <div className="absolute inset-0 z-20 flex flex-col justify-end rounded-t-2xl sm:rounded-2xl">
               <button
                 type="button"
                 className="absolute inset-0 bg-black/30"
@@ -517,10 +553,7 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
                 <div className="space-y-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setPhotoSourceOpen(false)
-                      cameraInputRef.current?.click()
-                    }}
+                    onClick={openCameraPicker}
                     className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
@@ -528,19 +561,15 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
                     </span>
                     <span className="text-sm font-semibold text-gray-800">카메라</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPhotoSourceOpen(false)
-                      galleryInputRef.current?.click()
-                    }}
-                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
+                  <label
+                    htmlFor="recipe-form-gallery-input"
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
                       <Image size={20} />
                     </span>
                     <span className="text-sm font-semibold text-gray-800">갤러리</span>
-                  </button>
+                  </label>
                   <button
                     type="button"
                     onClick={() => setPhotoSourceOpen(false)}
@@ -556,6 +585,7 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
       </div>
       {ingredientDrag.previewPortal}
       {stepDrag.previewPortal}
-    </>
+    </>,
+    document.body,
   )
 }
