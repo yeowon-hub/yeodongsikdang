@@ -1,7 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRecipe, useRecipes } from '@/hooks/useRecipes'
 import { useIngredients } from '@/hooks/useIngredients'
+import { useRecipeBubbleOptional } from '@/contexts/RecipeBubbleContext'
 import { RecipeDetailView } from '@/components/recipe/RecipeDetail'
 import { RecipeForm } from '@/components/recipe/RecipeForm'
 import { useSuppressGlobalAddFab } from '@/contexts/GlobalAddFabContext'
@@ -11,9 +12,17 @@ export function RecipeDetailPage() {
   const navigate = useNavigate()
   const recipe = useRecipe(id)
   const { ingredients } = useIngredients()
+  const bubble = useRecipeBubbleOptional()
   const { updateRecipe, deleteRecipe } = useRecipes()
   const [editOpen, setEditOpen] = useState(false)
   useSuppressGlobalAddFab(editOpen)
+
+  const ingredientsForMatch = useMemo(() => {
+    const bubbleOnly = (bubble?.bubbleIngredients ?? []).filter(
+      (item) => !ingredients.some((ing) => ing.id === item.id),
+    )
+    return [...ingredients, ...bubbleOnly]
+  }, [ingredients, bubble?.bubbleIngredients])
 
   if (recipe === undefined) {
     return (
@@ -36,7 +45,7 @@ export function RecipeDetailPage() {
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain bg-[#D8F2EE]">
         <RecipeDetailView
           recipe={recipe}
-          ingredients={ingredients}
+          ingredients={ingredientsForMatch}
           onEdit={!recipe.isBuiltin ? () => setEditOpen(true) : undefined}
           onDelete={
             !recipe.isBuiltin

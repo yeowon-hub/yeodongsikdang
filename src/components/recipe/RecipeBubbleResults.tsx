@@ -8,6 +8,7 @@ interface RecipeBubbleResultsProps {
   onClose: () => void
   matches: RecipeMatch[]
   bubbleIngredients: Ingredient[]
+  searchedRecipeCount?: number
 }
 
 export function RecipeBubbleResults({
@@ -15,6 +16,7 @@ export function RecipeBubbleResults({
   onClose,
   matches,
   bubbleIngredients,
+  searchedRecipeCount,
 }: RecipeBubbleResultsProps) {
   if (!open) return null
 
@@ -50,9 +52,15 @@ export function RecipeBubbleResults({
             <div className="space-y-2 py-10 text-center text-sm text-gray-500">
               <p>말풍선에 추가한 모든 재료를 사용하는 레시피를 찾을 수 없어요.</p>
               <p className="text-xs text-gray-400">
+                {typeof searchedRecipeCount === 'number' && (
+                  <>
+                    저장된 레시피 {searchedRecipeCount}개를 검색했어요.
+                    <br />
+                  </>
+                )}
                 삼겹살·목살 등은 돼지고기 레시피와 연결됩니다.
                 <br />
-                레시피 노트 → 전체 탭에서 기본 레시피가 보이는지 확인해 주세요.
+                화면이 안 바뀌면 Ctrl+F5로 새로고침해 주세요.
               </p>
             </div>
           ) : (

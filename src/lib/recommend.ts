@@ -11,8 +11,11 @@ export { ingredientsMatch, hasMatchedIngredient, normalizeIngredientName as norm
 
 /** 레시피가 말풍선 재료를 재료 목록·조리 단계에서 사용하는지 */
 export function recipeUsesBubbleIngredient(recipe: Recipe, bubbleName: string): boolean {
+  const normalizedBubble = normalizeIngredientName(bubbleName)
+  if (!normalizedBubble) return false
+
   const ingredients = normalizeRecipeIngredients(recipe.ingredients)
-  if (ingredients.some((item) => ingredientsMatch(bubbleName, item.name))) {
+  if (ingredients.some((item) => ingredientsMatch(normalizedBubble, item.name))) {
     return true
   }
 
@@ -22,7 +25,7 @@ export function recipeUsesBubbleIngredient(recipe: Recipe, bubbleName: string): 
     ...normalizeRecipeSteps(recipe.steps).map((step) => step.text),
   ].join('\n')
 
-  return textMentionsIngredient(body, bubbleName)
+  return textMentionsIngredient(body, normalizedBubble)
 }
 
 export function matchRecipe(recipe: Recipe, available: Set<string>): RecipeMatch {
