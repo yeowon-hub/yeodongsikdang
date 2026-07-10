@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MessageCircle } from 'lucide-react'
 import { useRecipeBubble } from '@/contexts/RecipeBubbleContext'
-import { useRecipes } from '@/hooks/useRecipes'
+import { db } from '@/lib/db'
+import { seedIfNeeded } from '@/lib/seed'
 import { recommendRecipesForSelection } from '@/lib/recommend'
 import { IngredientCard } from '@/components/fridge/IngredientCard'
 import { RecipeBubbleResults } from './RecipeBubbleResults'
@@ -40,14 +41,21 @@ export function RecipeBubble() {
     isBubbleNear,
     activeDrag,
   } = useRecipeBubble()
-  const { recipes } = useRecipes()
   const [resultsOpen, setResultsOpen] = useState(false)
   const [matches, setMatches] = useState<RecipeMatch[]>([])
+  const [searching, setSearching] = useState(false)
 
-  const openResults = () => {
-    if (bubbleIngredients.length === 0) return
-    setMatches(recommendRecipesForSelection(recipes, bubbleIngredients))
-    setResultsOpen(true)
+  const openResults = async () => {
+    if (bubbleIngredients.length === 0 || searching) return
+    setSearching(true)
+    try {
+      await seedIfNeeded()
+      const allRecipes = await db.recipes.toArray()
+      setMatches(recommendRecipesForSelection(allRecipes, bubbleIngredients))
+      setResultsOpen(true)
+    } finally {
+      setSearching(false)
+    }
   }
 
   return (
@@ -65,7 +73,7 @@ export function RecipeBubble() {
                 <button
                   type="button"
                   onClick={openResults}
-                  disabled={bubbleIngredients.length === 0}
+                  disabled={bubbleIngredients.length === 0 || searching}
                   className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-header-text shadow-md ring-1 ring-black/10 transition-transform active:scale-95 disabled:opacity-40"
                   aria-label="추천 레시피 보기"
                   title="추천 레시피"
@@ -75,7 +83,7 @@ export function RecipeBubble() {
                 <button
                   type="button"
                   onClick={clearBubble}
-                  disabled={bubbleIngredients.length === 0}
+                  disabled={bubbleIngredients.length === 0 || searching}
                   className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm font-bold leading-none text-gray-600 shadow-md ring-1 ring-black/10 transition-transform active:scale-95 disabled:opacity-40"
                   aria-label="말풍선 비우기"
                   title="전체 비우기"

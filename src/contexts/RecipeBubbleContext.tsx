@@ -76,6 +76,12 @@ interface RecipeBubbleContextValue {
 
 const RecipeBubbleContext = createContext<RecipeBubbleContextValue | null>(null)
 
+function sanitizeBubbleIngredient(ingredient: Ingredient): Ingredient | null {
+  const name = ingredient.name?.normalize('NFKC').trim()
+  if (!name) return null
+  return { ...ingredient, name }
+}
+
 export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
   const [bubbleIngredients, setBubbleIngredients] = useState<Ingredient[]>(() => {
     if (typeof window === 'undefined') return []
@@ -83,7 +89,10 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(STORAGE_KEY)
       if (!raw) return []
       const parsed = JSON.parse(raw) as Ingredient[]
-      return Array.isArray(parsed) ? parsed : []
+      if (!Array.isArray(parsed)) return []
+      return parsed
+        .map((item) => sanitizeBubbleIngredient(item))
+        .filter((item): item is Ingredient => item !== null)
     } catch {
       return []
     }
@@ -133,9 +142,11 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const addToBubble = useCallback((ingredient: Ingredient) => {
+    const sanitized = sanitizeBubbleIngredient(ingredient)
+    if (!sanitized) return
     setBubbleIngredients((prev) => {
-      if (prev.some((i) => i.id === ingredient.id)) return prev
-      return [...prev, ingredient]
+      if (prev.some((i) => i.id === sanitized.id)) return prev
+      return [...prev, sanitized]
     })
   }, [])
 
@@ -185,10 +196,13 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
         const moved = Math.hypot(x - prev.startX, y - prev.startY)
 
         if (prev.source === 'storage' && (over || isNearBubble(x, y))) {
-          setBubbleIngredients((items) => {
-            if (items.some((i) => i.id === prev.ingredient.id)) return items
-            return [...items, prev.ingredient]
-          })
+          const sanitized = sanitizeBubbleIngredient(prev.ingredient)
+          if (sanitized) {
+            setBubbleIngredients((items) => {
+              if (items.some((i) => i.id === sanitized.id)) return items
+              return [...items, sanitized]
+            })
+          }
         } else if (prev.source === 'bubble' && moved >= DRAG_THRESHOLD_PX) {
           setBubbleIngredients((items) => items.filter((i) => i.id !== prev.ingredient.id))
         }

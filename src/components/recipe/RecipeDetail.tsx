@@ -65,10 +65,12 @@ export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: Reci
               <li
                 key={i}
                 className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
-                  ing.isOptional
-                    ? 'bg-gray-50 text-gray-500'
-                    : has
-                      ? 'bg-green-50 text-green-800'
+                  has
+                    ? ing.isOptional
+                      ? 'bg-green-50/80 text-green-700'
+                      : 'bg-green-50 text-green-800'
+                    : ing.isOptional
+                      ? 'bg-gray-50 text-gray-500'
                       : 'bg-red-50 text-red-700'
                 }`}
               >
