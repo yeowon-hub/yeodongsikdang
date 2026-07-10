@@ -1,27 +1,20 @@
 import type { Ingredient, Recipe, RecipeMatch } from '@/types'
+import {
+  hasMatchedIngredient,
+  ingredientsMatch,
+  normalizeIngredientName,
+} from '@/lib/ingredientMatch'
 
-function normalizeName(name: string) {
-  return name.trim().toLowerCase().replace(/\s+/g, '')
-}
-
-function hasIngredient(available: Set<string>, required: string) {
-  const normalized = normalizeName(required)
-  if (available.has(normalized)) return true
-
-  for (const item of available) {
-    if (item.includes(normalized) || normalized.includes(item)) return true
-  }
-  return false
-}
+export { ingredientsMatch, hasMatchedIngredient, normalizeIngredientName as normalizeName } from '@/lib/ingredientMatch'
 
 export function matchRecipe(recipe: Recipe, available: Set<string>): RecipeMatch {
   const required = recipe.ingredients.filter((i) => !i.isOptional)
   const optional = recipe.ingredients.filter((i) => i.isOptional)
 
-  const matchedRequired = required.filter((i) => hasIngredient(available, i.name))
-  const matchedOptional = optional.filter((i) => hasIngredient(available, i.name))
+  const matchedRequired = required.filter((i) => hasMatchedIngredient(available, i.name))
+  const matchedOptional = optional.filter((i) => hasMatchedIngredient(available, i.name))
   const missingRequired = required
-    .filter((i) => !hasIngredient(available, i.name))
+    .filter((i) => !hasMatchedIngredient(available, i.name))
     .map((i) => i.name)
 
   const requiredCount = required.length || 1
@@ -43,18 +36,14 @@ export function matchRecipe(recipe: Recipe, available: Set<string>): RecipeMatch
 }
 
 export function getAvailableNames(ingredients: Ingredient[]) {
-  return new Set(ingredients.map((i) => normalizeName(i.name)))
+  return new Set(ingredients.map((i) => normalizeIngredientName(i.name)))
 }
 
 /** 말풍선에 담긴 재료 이름이 레시피에 몇 개 매칭되는지 */
 export function countBubbleIngredientHits(recipe: Recipe, selected: Ingredient[]): number {
-  const selectedNames = selected.map((i) => normalizeName(i.name))
   let hits = 0
-  for (const sel of selectedNames) {
-    const hit = recipe.ingredients.some((ri) => {
-      const rn = normalizeName(ri.name)
-      return rn.includes(sel) || sel.includes(rn)
-    })
+  for (const ingredient of selected) {
+    const hit = recipe.ingredients.some((ri) => ingredientsMatch(ingredient.name, ri.name))
     if (hit) hits++
   }
   return hits
