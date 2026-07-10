@@ -104,7 +104,7 @@ export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: Reci
         </ol>
       </section>
 
-      {!recipe.isBuiltin && (onEdit || onDelete) && (
+      {(onEdit || onDelete) && (
         <div className="mt-8 flex gap-3">
           {onEdit && (
             <button

@@ -138,6 +138,8 @@ export interface Recipe {
   imageUrl?: string
   sourceUrl?: string
   isBuiltin: boolean
+  /** 기본 레시피를 사용자가 수정한 경우 시드로 덮어쓰지 않음 */
+  builtinCustomized?: boolean
   createdAt: string
   updatedAt: string
   synced?: boolean

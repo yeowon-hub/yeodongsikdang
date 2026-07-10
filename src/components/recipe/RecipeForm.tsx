@@ -143,24 +143,28 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
               <h3 className="shrink-0 text-lg font-bold">
                 {initial ? '레시피 수정' : '레시피 작성'}
               </h3>
-              <button
-                type="submit"
-                form="recipe-form"
-                className="shrink-0 rounded-xl bg-header px-4 py-2 text-sm font-semibold text-header-text hover:bg-header-dark active:scale-[0.99]"
-              >
-                {initial ? '수정' : '저장'}
-              </button>
-              {initial && onDelete && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onDelete()
-                    onClose()
-                  }}
-                  className="shrink-0 rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 active:scale-[0.99]"
-                >
-                  삭제
-                </button>
+              {initial && (
+                <>
+                  <button
+                    type="submit"
+                    form="recipe-form"
+                    className="shrink-0 rounded-xl bg-header px-4 py-2 text-sm font-semibold text-header-text hover:bg-header-dark active:scale-[0.99]"
+                  >
+                    수정
+                  </button>
+                  {onDelete && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onDelete()
+                        onClose()
+                      }}
+                      className="shrink-0 rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 active:scale-[0.99]"
+                    >
+                      삭제
+                    </button>
+                  )}
+                </>
               )}
             </div>
             <button type="button" onClick={onClose} className="shrink-0 rounded-full p-1 hover:bg-gray-100">
@@ -196,13 +200,13 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
               />
             </div>
 
-            <div className="space-y-3">
-              <div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="min-w-0">
                 <label className="mb-1 block text-sm font-medium text-gray-700">음식종류</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm"
+                  className="w-full rounded-xl border border-gray-200 px-2 py-2 text-sm"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>
@@ -211,34 +215,32 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">소요시간</label>
-                  <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
-                    <input
-                      type="number"
-                      min={1}
-                      value={cookingTime}
-                      onChange={(e) => setCookingTime(Number(e.target.value))}
-                      className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm outline-none"
-                      aria-label="소요시간"
-                    />
-                    <span className="shrink-0 text-sm text-gray-500">분</span>
-                  </div>
+              <div className="min-w-0">
+                <label className="mb-1 block text-sm font-medium text-gray-700">소요시간</label>
+                <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-2 py-2">
+                  <input
+                    type="number"
+                    min={1}
+                    value={cookingTime}
+                    onChange={(e) => setCookingTime(Number(e.target.value))}
+                    className="min-w-0 w-full border-0 bg-transparent p-0 text-sm outline-none"
+                    aria-label="소요시간"
+                  />
+                  <span className="shrink-0 text-xs text-gray-500">분</span>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">인분</label>
-                  <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
-                    <input
-                      type="number"
-                      min={1}
-                      value={servings}
-                      onChange={(e) => setServings(Number(e.target.value))}
-                      className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm outline-none"
-                      aria-label="인분"
-                    />
-                    <span className="shrink-0 text-sm text-gray-500">인분</span>
-                  </div>
+              </div>
+              <div className="min-w-0">
+                <label className="mb-1 block text-sm font-medium text-gray-700">인분</label>
+                <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-2 py-2">
+                  <input
+                    type="number"
+                    min={1}
+                    value={servings}
+                    onChange={(e) => setServings(Number(e.target.value))}
+                    className="min-w-0 w-full border-0 bg-transparent p-0 text-sm outline-none"
+                    aria-label="인분"
+                  />
+                  <span className="shrink-0 text-xs text-gray-500">인분</span>
                 </div>
               </div>
             </div>
@@ -415,6 +417,13 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
                 </button>
               </div>
             </div>
+
+            <button
+              type="submit"
+              className="w-full rounded-xl bg-header py-3 text-sm font-semibold text-header-text hover:bg-header-dark"
+            >
+              저장
+            </button>
           </form>
         </div>
       </div>

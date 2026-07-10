@@ -56,22 +56,26 @@ export function useRecipes() {
 
   const updateRecipe = async (id: string, updates: Partial<Recipe>) => {
     const existing = await db.recipes.get(id)
-    if (!existing || existing.isBuiltin) return
+    if (!existing) return
     const updated: Recipe = {
       ...existing,
       ...updates,
       id,
+      isBuiltin: existing.isBuiltin,
+      builtinCustomized: existing.isBuiltin ? true : existing.builtinCustomized,
       updatedAt: new Date().toISOString(),
-      synced: false,
+      synced: existing.isBuiltin ? true : false,
     }
     await db.recipes.put(updated)
-    await enqueueSync({
-      table: 'recipes',
-      recordId: id,
-      action: 'update',
-      payload: updated as unknown as Record<string, unknown>,
-    })
-    void sync()
+    if (!existing.isBuiltin) {
+      await enqueueSync({
+        table: 'recipes',
+        recordId: id,
+        action: 'update',
+        payload: updated as unknown as Record<string, unknown>,
+      })
+      void sync()
+    }
   }
 
   const deleteRecipe = async (id: string) => {

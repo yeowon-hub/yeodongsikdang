@@ -46,7 +46,9 @@ export function RecipeCard({ recipe, matchScore, matchedCount }: RecipeCardProps
         )}
       </div>
       {recipe.isBuiltin && (
-        <span className="mt-2 inline-block text-[10px] text-gray-400">기본 레시피</span>
+        <span className="mt-2 inline-block text-[10px] text-gray-400">
+          기본 레시피{recipe.builtinCustomized ? ' · 수정됨' : ''}
+        </span>
       )}
     </Link>
   )

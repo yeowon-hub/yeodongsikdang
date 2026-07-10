@@ -46,7 +46,7 @@ export function RecipeDetailPage() {
         <RecipeDetailView
           recipe={recipe}
           ingredients={ingredientsForMatch}
-          onEdit={!recipe.isBuiltin ? () => setEditOpen(true) : undefined}
+          onEdit={() => setEditOpen(true)}
           onDelete={
             !recipe.isBuiltin
               ? async () => {
@@ -57,20 +57,22 @@ export function RecipeDetailPage() {
           }
         />
       </div>
-      {!recipe.isBuiltin && (
-        <RecipeForm
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          initial={recipe}
-          onSubmit={async (data) => {
-            await updateRecipe(recipe.id, data)
-          }}
-          onDelete={async () => {
-            await deleteRecipe(recipe.id)
-            navigate('/recipes')
-          }}
-        />
-      )}
+      <RecipeForm
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        initial={recipe}
+        onSubmit={async (data) => {
+          await updateRecipe(recipe.id, data)
+        }}
+        onDelete={
+          !recipe.isBuiltin
+            ? async () => {
+                await deleteRecipe(recipe.id)
+                navigate('/recipes')
+              }
+            : undefined
+        }
+      />
     </>
   )
 }
