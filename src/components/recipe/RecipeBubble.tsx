@@ -20,6 +20,7 @@ function BubbleIngredientBadge({ ingredient }: { ingredient: Ingredient }) {
           ? 'opacity-40'
           : ''
       }`}
+      style={{ touchAction: 'none' }}
       onPointerDown={handlers.onPointerDown}
       onPointerMove={handlers.onPointerMove}
       onPointerUp={handlers.onPointerUp}

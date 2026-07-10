@@ -193,9 +193,10 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
       setActiveDrag((prev) => {
         if (!prev) return null
         const over = isOverBubble(x, y)
+        const near = isNearBubble(x, y)
         const moved = Math.hypot(x - prev.startX, y - prev.startY)
 
-        if (prev.source === 'storage' && (over || isNearBubble(x, y))) {
+        if (prev.source === 'storage' && (over || near)) {
           const sanitized = sanitizeBubbleIngredient(prev.ingredient)
           if (sanitized) {
             setBubbleIngredients((items) => {
@@ -203,7 +204,7 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
               return [...items, sanitized]
             })
           }
-        } else if (prev.source === 'bubble' && moved >= DRAG_THRESHOLD_PX) {
+        } else if (prev.source === 'bubble' && moved >= DRAG_THRESHOLD_PX && !near) {
           setBubbleIngredients((items) => items.filter((i) => i.id !== prev.ingredient.id))
         }
         return null
@@ -296,41 +297,82 @@ export function RecipeBubbleProvider({ children }: { children: ReactNode }) {
 
   const createBubblePointerHandlers = useCallback(
     (ingredient: Ingredient) => {
-      let dragging = false
       let startX = 0
       let startY = 0
+      let activePointerId: number | null = null
+      let ended = false
+
+      const finishDrag = (clientX: number, clientY: number) => {
+        if (ended) return
+        ended = true
+        const moved = Math.hypot(clientX - startX, clientY - startY)
+        if (moved >= DRAG_THRESHOLD_PX) {
+          endDrag(clientX, clientY)
+        } else {
+          cancelDrag()
+        }
+      }
+
+      const onWindowPointerMove = (e: PointerEvent) => {
+        if (activePointerId === null || e.pointerId !== activePointerId) return
+        updateDrag(e.clientX, e.clientY)
+      }
+
+      const onWindowPointerEnd = (e: PointerEvent) => {
+        if (activePointerId === null || e.pointerId !== activePointerId) return
+        finishDrag(e.clientX, e.clientY)
+        cleanupWindowListeners()
+      }
+
+      const onWindowPointerCancel = (e: PointerEvent) => {
+        if (activePointerId === null || e.pointerId !== activePointerId) return
+        if (!ended) cancelDrag()
+        cleanupWindowListeners()
+      }
+
+      const cleanupWindowListeners = () => {
+        window.removeEventListener('pointermove', onWindowPointerMove)
+        window.removeEventListener('pointerup', onWindowPointerEnd)
+        window.removeEventListener('pointercancel', onWindowPointerCancel)
+        activePointerId = null
+      }
 
       return {
         onPointerDown: (e: React.PointerEvent) => {
           e.stopPropagation()
-          e.currentTarget.setPointerCapture(e.pointerId)
-          dragging = false
+          e.preventDefault()
+          ended = false
           startX = e.clientX
           startY = e.clientY
+          activePointerId = e.pointerId
           beginBubbleDrag(ingredient, e.clientX, e.clientY)
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId)
+          } catch {
+            /* already captured */
+          }
+          window.addEventListener('pointermove', onWindowPointerMove)
+          window.addEventListener('pointerup', onWindowPointerEnd)
+          window.addEventListener('pointercancel', onWindowPointerCancel)
         },
         onPointerMove: (e: React.PointerEvent) => {
-          const moved = Math.hypot(e.clientX - startX, e.clientY - startY)
-          if (!dragging && moved >= DRAG_THRESHOLD_PX) dragging = true
-          if (dragging) updateDrag(e.clientX, e.clientY)
+          if (activePointerId === null || e.pointerId !== activePointerId) return
+          updateDrag(e.clientX, e.clientY)
         },
         onPointerUp: (e: React.PointerEvent) => {
-          const moved = Math.hypot(e.clientX - startX, e.clientY - startY)
-          if (dragging && moved >= DRAG_THRESHOLD_PX) {
-            endDrag(e.clientX, e.clientY)
-          } else {
-            cancelDrag()
-          }
-          dragging = false
+          if (activePointerId === null || e.pointerId !== activePointerId) return
+          finishDrag(e.clientX, e.clientY)
+          cleanupWindowListeners()
           try {
             e.currentTarget.releasePointerCapture(e.pointerId)
           } catch {
             /* already released */
           }
         },
-        onPointerCancel: () => {
-          if (dragging) cancelDrag()
-          dragging = false
+        onPointerCancel: (e: React.PointerEvent) => {
+          if (activePointerId === null || e.pointerId !== activePointerId) return
+          cancelDrag()
+          cleanupWindowListeners()
         },
       }
     },
