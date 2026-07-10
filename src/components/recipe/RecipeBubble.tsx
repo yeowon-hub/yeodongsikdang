@@ -49,12 +49,15 @@ export function RecipeBubble() {
   const openResults = async () => {
     if (bubbleIngredients.length === 0 || searching) return
     setSearching(true)
+    setResultsOpen(true)
+    setMatches([])
+    setSearchedRecipeCount(0)
     try {
       await seedIfNeeded()
       const allRecipes = await db.recipes.toArray()
+      const found = recommendRecipesForSelection(allRecipes, bubbleIngredients)
       setSearchedRecipeCount(allRecipes.length)
-      setMatches(recommendRecipesForSelection(allRecipes, bubbleIngredients))
-      setResultsOpen(true)
+      setMatches(found)
     } finally {
       setSearching(false)
     }
@@ -148,6 +151,7 @@ export function RecipeBubble() {
         matches={matches}
         bubbleIngredients={bubbleIngredients}
         searchedRecipeCount={searchedRecipeCount}
+        searching={searching}
       />
     </>
   )
