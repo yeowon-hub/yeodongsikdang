@@ -13,8 +13,7 @@ import {
 } from '@/lib/householdSync'
 import type { Ingredient, Recipe } from '@/types'
 import { normalizeStorageLocation, toLegacyPushLocation } from '@/types'
-import { normalizeRecipeIngredients, normalizeRecipeSteps } from '@/lib/recipeIngredients'
-import { canSyncRecipeToServer, recipeFromRemoteRow } from '@/lib/recipeSync'
+import { canSyncRecipeToServer, recipeFromRemoteRow, recipeToServerRow, remoteRecipeIdSet } from '@/lib/recipeSync'
 
 function toDbIngredient(row: Record<string, unknown>): Ingredient {
   return {
@@ -28,27 +27,6 @@ function toDbIngredient(row: Record<string, unknown>): Ingredient {
     expiryDate: (row.expiry_date as string) || undefined,
     shelfLevel: (row.shelf_level as number) || undefined,
     imageUrl: (row.image_url as string) || undefined,
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
-    synced: true,
-  }
-}
-
-function toDbRecipe(row: Record<string, unknown>): Recipe {
-  return {
-    id: row.id as string,
-    userId: (row.user_id as string) || undefined,
-    householdId: (row.household_id as string) || undefined,
-    title: row.title as string,
-    description: (row.description as string) || undefined,
-    steps: normalizeRecipeSteps(row.steps),
-    ingredients: normalizeRecipeIngredients(row.ingredients),
-    cookingTime: (row.cooking_time as number) || undefined,
-    servings: (row.servings as number) || undefined,
-    category: (row.category as string) || undefined,
-    imageUrl: (row.image_url as string) || undefined,
-    sourceUrl: (row.source_url as string) || undefined,
-    isBuiltin: row.is_builtin as boolean,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     synced: true,
@@ -111,23 +89,7 @@ async function upsertIngredient(localIng: Ingredient, userId: string, householdI
 }
 
 function recipeToRow(item: Recipe, userId: string, householdId: string | null) {
-  return {
-    id: item.id,
-    user_id: userId,
-    household_id: householdId,
-    title: item.title,
-    description: item.description || null,
-    steps: item.steps,
-    ingredients: item.ingredients,
-    cooking_time: item.cookingTime ?? null,
-    servings: item.servings ?? null,
-    category: item.category || null,
-    image_url: item.imageUrl || null,
-    source_url: item.sourceUrl || null,
-    is_builtin: false,
-    created_at: item.createdAt,
-    updated_at: item.updatedAt,
-  }
+  return recipeToServerRow(item, userId, householdId)
 }
 
 function shouldApplyRemote<T extends { updatedAt: string; householdId?: string; synced?: boolean }>(
@@ -294,12 +256,11 @@ export function useSync(user: User | null, householdId: string | null, household
     }
 
     for (const row of recipeRows) {
-      const item = toDbRecipe(row)
-      if (item.isBuiltin) continue
+      const item = recipeFromRemoteRow(row, householdId)
+      if (item.isBuiltin && !item.builtinCustomized) continue
       const local = await db.recipes.get(item.id)
-      const remoteRecipe = recipeFromRemoteRow(item, householdId)
-      if (shouldApplyRemote(local, remoteRecipe, householdId)) {
-        await db.recipes.put(remoteRecipe)
+      if (shouldApplyRemote(local, item, householdId)) {
+        await db.recipes.put(item)
       }
     }
 
@@ -406,7 +367,7 @@ export function useSync(user: User | null, householdId: string | null, household
               await removeStaleHouseholdItems(
                 householdId,
                 new Set(remoteIngredients.map((row) => row.id as string)),
-                new Set(remoteRecipes.map((row) => row.id as string)),
+                remoteRecipeIdSet(remoteRecipes),
               )
             }
           }
