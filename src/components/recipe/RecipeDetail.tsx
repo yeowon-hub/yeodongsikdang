@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Clock, Users, ExternalLink, Pencil, Trash2 } from 'lucide-react'
 import type { Recipe } from '@/types'
 import { getAvailableNames, hasMatchedIngredient } from '@/lib/recommend'
+import { normalizeRecipeIngredients } from '@/lib/recipeIngredients'
 import type { Ingredient } from '@/types'
 
 interface RecipeDetailProps {
@@ -13,6 +14,7 @@ interface RecipeDetailProps {
 
 export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: RecipeDetailProps) {
   const available = getAvailableNames(ingredients)
+  const recipeIngredients = normalizeRecipeIngredients(recipe.ingredients)
 
   return (
     <div className="px-4 py-4 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]">
@@ -57,7 +59,7 @@ export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: Reci
       <section className="mt-6">
         <h3 className="mb-3 font-semibold text-gray-800">재료</h3>
         <ul className="space-y-2">
-          {recipe.ingredients.map((ing, i) => {
+          {recipeIngredients.map((ing, i) => {
             const has = hasMatchedIngredient(available, ing.name)
             return (
               <li

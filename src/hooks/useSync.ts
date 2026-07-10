@@ -13,6 +13,7 @@ import {
 } from '@/lib/householdSync'
 import type { Ingredient, Recipe } from '@/types'
 import { normalizeStorageLocation, toLegacyPushLocation } from '@/types'
+import { normalizeRecipeIngredients, normalizeRecipeSteps } from '@/lib/recipeIngredients'
 
 function toDbIngredient(row: Record<string, unknown>): Ingredient {
   return {
@@ -39,8 +40,8 @@ function toDbRecipe(row: Record<string, unknown>): Recipe {
     householdId: (row.household_id as string) || undefined,
     title: row.title as string,
     description: (row.description as string) || undefined,
-    steps: row.steps as Recipe['steps'],
-    ingredients: row.ingredients as Recipe['ingredients'],
+    steps: normalizeRecipeSteps(row.steps),
+    ingredients: normalizeRecipeIngredients(row.ingredients),
     cookingTime: (row.cooking_time as number) || undefined,
     servings: (row.servings as number) || undefined,
     category: (row.category as string) || undefined,

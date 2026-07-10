@@ -117,3 +117,24 @@ export function canonicalIngredientName(name: string): string {
   }
   return name.trim()
 }
+
+/** 조리법·설명 문장에 재료(동의어·부위명 포함)가 언급됐는지 */
+export function textMentionsIngredient(text: string, ingredientName: string): boolean {
+  const haystack = normalizeIngredientName(text)
+  if (!haystack) return false
+
+  const direct = normalizeIngredientName(ingredientName)
+  if (direct.length >= 2 && haystack.includes(direct)) return true
+
+  for (const group of INGREDIENT_ALIAS_GROUPS) {
+    if (!group.some((alias) => aliasMatchesName(alias, ingredientName))) continue
+    for (const alias of group) {
+      const normalizedAlias = normalizeIngredientName(alias)
+      if (normalizedAlias.length >= 2 && haystack.includes(normalizedAlias)) {
+        return true
+      }
+    }
+  }
+
+  return false
+}

@@ -47,9 +47,14 @@ export function RecipeBubbleResults({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           {matches.length === 0 ? (
-            <p className="py-10 text-center text-sm text-gray-500">
-              말풍선에 추가한 모든 재료를 사용하는 레시피를 찾을 수 없어요.
-            </p>
+            <div className="space-y-2 py-10 text-center text-sm text-gray-500">
+              <p>말풍선에 추가한 모든 재료를 사용하는 레시피를 찾을 수 없어요.</p>
+              <p className="text-xs text-gray-400">
+                삼겹살·목살 등은 돼지고기 레시피와 연결됩니다.
+                <br />
+                레시피 노트 → 전체 탭에서 기본 레시피가 보이는지 확인해 주세요.
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
               {matches.map((m) => (

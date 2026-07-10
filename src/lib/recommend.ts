@@ -3,13 +3,32 @@ import {
   hasMatchedIngredient,
   ingredientsMatch,
   normalizeIngredientName,
+  textMentionsIngredient,
 } from '@/lib/ingredientMatch'
+import { normalizeRecipeIngredients, normalizeRecipeSteps } from '@/lib/recipeIngredients'
 
 export { ingredientsMatch, hasMatchedIngredient, normalizeIngredientName as normalizeName } from '@/lib/ingredientMatch'
 
+/** 레시피가 말풍선 재료를 재료 목록·조리 단계에서 사용하는지 */
+export function recipeUsesBubbleIngredient(recipe: Recipe, bubbleName: string): boolean {
+  const ingredients = normalizeRecipeIngredients(recipe.ingredients)
+  if (ingredients.some((item) => ingredientsMatch(bubbleName, item.name))) {
+    return true
+  }
+
+  const body = [
+    recipe.title ?? '',
+    recipe.description ?? '',
+    ...normalizeRecipeSteps(recipe.steps).map((step) => step.text),
+  ].join('\n')
+
+  return textMentionsIngredient(body, bubbleName)
+}
+
 export function matchRecipe(recipe: Recipe, available: Set<string>): RecipeMatch {
-  const required = recipe.ingredients.filter((i) => !i.isOptional)
-  const optional = recipe.ingredients.filter((i) => i.isOptional)
+  const ingredients = normalizeRecipeIngredients(recipe.ingredients)
+  const required = ingredients.filter((i) => !i.isOptional)
+  const optional = ingredients.filter((i) => i.isOptional)
 
   const matchedRequired = required.filter((i) => hasMatchedIngredient(available, i.name))
   const matchedOptional = optional.filter((i) => hasMatchedIngredient(available, i.name))
@@ -43,8 +62,7 @@ export function getAvailableNames(ingredients: Ingredient[]) {
 export function countBubbleIngredientHits(recipe: Recipe, selected: Ingredient[]): number {
   let hits = 0
   for (const ingredient of selected) {
-    const hit = recipe.ingredients.some((ri) => ingredientsMatch(ingredient.name, ri.name))
-    if (hit) hits++
+    if (recipeUsesBubbleIngredient(recipe, ingredient.name)) hits++
   }
   return hits
 }

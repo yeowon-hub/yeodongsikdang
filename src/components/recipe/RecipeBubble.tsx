@@ -43,12 +43,17 @@ export function RecipeBubble() {
     isBubbleNear,
     activeDrag,
   } = useRecipeBubble()
-  const { recipes } = useRecipes()
+  const { myRecipes, builtinRecipes } = useRecipes()
   const [resultsOpen, setResultsOpen] = useState(false)
 
+  const searchableRecipes = useMemo(
+    () => [...builtinRecipes, ...myRecipes],
+    [builtinRecipes, myRecipes],
+  )
+
   const matches = useMemo(
-    () => recommendRecipesForSelection(recipes, bubbleIngredients),
-    [recipes, bubbleIngredients],
+    () => recommendRecipesForSelection(searchableRecipes, bubbleIngredients),
+    [searchableRecipes, bubbleIngredients],
   )
 
   return (
