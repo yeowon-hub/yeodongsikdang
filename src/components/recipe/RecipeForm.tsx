@@ -259,7 +259,7 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
               required
             />
 
-            <div>
+            <div className="relative">
               <label className="mb-1 block text-sm font-medium text-gray-700">사진 (선택)</label>
               {imageUrl ? (
                 <div className="relative">
@@ -282,14 +282,51 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
                   사진 처리 중...
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setPhotoSourceOpen(true)}
-                  className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-header/40 bg-header/5 py-8 text-header-text/80 transition-colors hover:border-header hover:bg-header/15 hover:text-header-text active:bg-header/20"
-                >
-                  <Camera size={28} />
-                  <span className="text-sm font-medium">사진 추가하기</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoSourceOpen((open) => !open)}
+                    className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-header/40 bg-header/5 py-8 text-header-text/80 transition-colors hover:border-header hover:bg-header/15 hover:text-header-text active:bg-header/20"
+                  >
+                    <Camera size={28} />
+                    <span className="text-sm font-medium">사진 추가하기</span>
+                  </button>
+                  {photoSourceOpen && (
+                    <div className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                      <p className="border-b border-gray-100 px-4 py-2.5 text-center text-sm font-semibold text-gray-800">
+                        사진 가져오기
+                      </p>
+                      <div className="space-y-1 p-2">
+                        <button
+                          type="button"
+                          onClick={openCameraPicker}
+                          className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left hover:bg-gray-50 active:bg-gray-100"
+                        >
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
+                            <Camera size={20} />
+                          </span>
+                          <span className="text-sm font-semibold text-gray-800">카메라</span>
+                        </button>
+                        <label
+                          htmlFor="recipe-form-gallery-input"
+                          className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left hover:bg-gray-50 active:bg-gray-100"
+                        >
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
+                            <Image size={20} />
+                          </span>
+                          <span className="text-sm font-semibold text-gray-800">갤러리</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setPhotoSourceOpen(false)}
+                          className="w-full rounded-lg py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
               {imageError && <p className="mt-1 text-xs text-red-500">{imageError}</p>}
             </div>
@@ -539,48 +576,6 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
             </button>
           </form>
           </div>
-
-          {photoSourceOpen && (
-            <div className="absolute inset-0 z-20 flex flex-col justify-end rounded-t-2xl sm:rounded-2xl">
-              <button
-                type="button"
-                className="absolute inset-0 bg-black/30"
-                aria-label="닫기"
-                onClick={() => setPhotoSourceOpen(false)}
-              />
-              <div className="relative rounded-t-2xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.12)]">
-                <p className="mb-3 text-center text-sm font-semibold text-gray-800">사진 가져오기</p>
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={openCameraPicker}
-                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
-                      <Camera size={20} />
-                    </span>
-                    <span className="text-sm font-semibold text-gray-800">카메라</span>
-                  </button>
-                  <label
-                    htmlFor="recipe-form-gallery-input"
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
-                      <Image size={20} />
-                    </span>
-                    <span className="text-sm font-semibold text-gray-800">갤러리</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setPhotoSourceOpen(false)}
-                    className="w-full rounded-xl py-3 text-sm font-medium text-gray-500 hover:bg-gray-50"
-                  >
-                    취소
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
       {ingredientDrag.previewPortal}
