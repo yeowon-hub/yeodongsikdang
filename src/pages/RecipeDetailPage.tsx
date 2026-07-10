@@ -65,6 +65,10 @@ export function RecipeDetailPage() {
           onSubmit={async (data) => {
             await updateRecipe(recipe.id, data)
           }}
+          onDelete={async () => {
+            await deleteRecipe(recipe.id)
+            navigate('/recipes')
+          }}
         />
       )}
     </>
