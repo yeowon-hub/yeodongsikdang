@@ -23,6 +23,14 @@ export function RecipeDetailView({ recipe, ingredients, onEdit, onDelete }: Reci
         레시피 노트
       </Link>
 
+      {recipe.imageUrl && (
+        <img
+          src={recipe.imageUrl}
+          alt={recipe.title}
+          className="mb-4 h-48 w-full rounded-2xl object-cover shadow-sm"
+        />
+      )}
+
       <h2 className="text-2xl font-bold text-gray-800">{recipe.title}</h2>
       {recipe.description && <p className="mt-2 text-sm text-gray-600">{recipe.description}</p>}
 

@@ -12,8 +12,16 @@ export function RecipeCard({ recipe, matchScore, matchedCount }: RecipeCardProps
   return (
     <Link
       to={`/recipes/${recipe.id}`}
-      className="block rounded-[22px] border border-white/80 bg-white p-4 shadow-md transition-all hover:shadow-lg active:scale-[0.99]"
+      className="block overflow-hidden rounded-[22px] border border-white/80 bg-white shadow-md transition-all hover:shadow-lg active:scale-[0.99]"
     >
+      {recipe.imageUrl && (
+        <img
+          src={recipe.imageUrl}
+          alt=""
+          className="h-36 w-full object-cover"
+        />
+      )}
+      <div className="p-4">
       <p className="flex items-start justify-between gap-2">
         <span className="font-semibold text-gray-800">{recipe.title}</span>
         {matchScore !== undefined && (
@@ -50,6 +58,7 @@ export function RecipeCard({ recipe, matchScore, matchedCount }: RecipeCardProps
           기본 레시피{recipe.builtinCustomized ? ' · 수정됨' : ''}
         </span>
       )}
+      </div>
     </Link>
   )
 }

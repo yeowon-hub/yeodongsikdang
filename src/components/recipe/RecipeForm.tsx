@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Menu, Plus, Trash2, X } from 'lucide-react'
+import { Camera, Image, Menu, Plus, Trash2, X } from 'lucide-react'
 import { useDragReorder } from '@/hooks/useDragReorder'
+import { compressImageToDataUrl } from '@/lib/image'
 import type { Recipe, RecipeIngredient, RecipeStep } from '@/types'
 import { CATEGORIES, UNITS } from '@/types'
 
@@ -16,6 +17,7 @@ interface RecipeFormProps {
     ingredients: RecipeIngredient[]
     steps: RecipeStep[]
     sourceUrl?: string
+    imageUrl?: string
   }) => void
   onDelete?: () => void
   initial?: Recipe
@@ -57,9 +59,14 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
     withStepIds(initial?.steps ?? [{ order: 1, text: '' }]),
   )
   const [sourceUrl, setSourceUrl] = useState(initial?.sourceUrl ?? '')
+  const [imageUrl, setImageUrl] = useState<string | undefined>(initial?.imageUrl)
+  const [imageError, setImageError] = useState('')
+  const [photoSourceOpen, setPhotoSourceOpen] = useState(false)
 
   const ingredientNameRefs = useRef<Array<HTMLInputElement | null>>([])
   const stepTextRefs = useRef<Array<HTMLInputElement | null>>([])
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   const reorderIngredients = useCallback((next: KeyedIngredient[]) => {
     setIngredients(next)
@@ -82,6 +89,9 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
     setIngredients(withIngredientIds(initial?.ingredients ?? [{ name: '', quantity: '1', unit: '개' }]))
     setSteps(withStepIds(initial?.steps ?? [{ order: 1, text: '' }]))
     setSourceUrl(initial?.sourceUrl ?? '')
+    setImageUrl(initial?.imageUrl)
+    setImageError('')
+    setPhotoSourceOpen(false)
   }, [initial, open])
 
   if (!open) return null
@@ -110,6 +120,20 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
     })
   }
 
+  const handleImagePick = async (file: File | undefined) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setImageError('이미지 파일만 올릴 수 있어요')
+      return
+    }
+    try {
+      setImageError('')
+      setImageUrl(await compressImageToDataUrl(file, 640))
+    } catch {
+      setImageError('사진을 불러오지 못했어요')
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
@@ -130,6 +154,7 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
       ingredients: validIngredients,
       steps: validSteps,
       sourceUrl: sourceUrl.trim() || undefined,
+      imageUrl,
     })
     onClose()
   }
@@ -137,7 +162,7 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
   return (
     <>
       <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40">
-        <div className="mx-auto min-h-full max-w-lg bg-white p-6">
+        <div className="relative mx-auto min-h-full max-w-lg bg-white p-6">
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <h3 className="shrink-0 text-lg font-bold">
@@ -181,6 +206,59 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
               className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm"
               required
             />
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">사진 (선택)</label>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => {
+                  void handleImagePick(e.target.files?.[0])
+                  e.target.value = ''
+                }}
+              />
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  void handleImagePick(e.target.files?.[0])
+                  e.target.value = ''
+                }}
+              />
+              {imageUrl ? (
+                <div className="relative">
+                  <img
+                    src={imageUrl}
+                    alt="레시피 사진"
+                    className="h-40 w-full rounded-xl object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl(undefined)}
+                    className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white"
+                    aria-label="사진 삭제"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setPhotoSourceOpen(true)}
+                  className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-header/40 bg-header/5 py-8 text-header-text/80 transition-colors hover:border-header hover:bg-header/15 hover:text-header-text active:bg-header/20"
+                >
+                  <Camera size={28} />
+                  <span className="text-sm font-medium">사진 추가하기</span>
+                </button>
+              )}
+              {imageError && <p className="mt-1 text-xs text-red-500">{imageError}</p>}
+            </div>
+
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -425,6 +503,55 @@ export function RecipeForm({ open, onClose, onSubmit, onDelete, initial }: Recip
               저장
             </button>
           </form>
+
+          {photoSourceOpen && (
+            <div className="absolute inset-0 z-10 flex flex-col justify-end">
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/30"
+                aria-label="닫기"
+                onClick={() => setPhotoSourceOpen(false)}
+              />
+              <div className="relative rounded-t-2xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.12)]">
+                <p className="mb-3 text-center text-sm font-semibold text-gray-800">사진 가져오기</p>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhotoSourceOpen(false)
+                      cameraInputRef.current?.click()
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
+                      <Camera size={20} />
+                    </span>
+                    <span className="text-sm font-semibold text-gray-800">카메라</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhotoSourceOpen(false)
+                      galleryInputRef.current?.click()
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 px-4 py-3.5 text-left hover:bg-gray-50 active:bg-gray-100"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-header/25 text-header-text">
+                      <Image size={20} />
+                    </span>
+                    <span className="text-sm font-semibold text-gray-800">갤러리</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoSourceOpen(false)}
+                    className="w-full rounded-xl py-3 text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {ingredientDrag.previewPortal}
